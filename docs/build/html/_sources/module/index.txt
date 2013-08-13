@@ -1,0 +1,4 @@
+.. automodule:: triton
+   :members:
+   :undoc-members:
+   :show-inheritance:

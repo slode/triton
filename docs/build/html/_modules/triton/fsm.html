@@ -1,0 +1,204 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>triton.fsm &mdash; Triton 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Triton 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="triton" href="../triton.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Triton 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../triton.html" accesskey="U">triton</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for triton.fsm</h1><div class="highlight"><pre>
+<span class="c">#-------------------------------------------------------------------------------</span>
+<span class="c"># Name:        StateMachine</span>
+<span class="c"># Purpose:</span>
+<span class="c">#</span>
+<span class="c"># Author:      Stian Lode</span>
+<span class="c">#</span>
+<span class="c"># Created:     30.08.2012</span>
+<span class="c"># Copyright:   (c) Stian Lode 2012</span>
+<span class="c"># Licence:     GPL</span>
+<span class="c">#-------------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="StateMachine"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.StateMachine">[docs]</a><span class="k">class</span> <span class="nc">StateMachine</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entity</span> <span class="o">=</span> <span class="n">entity</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_previous_state</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_state</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_state</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="StateMachine.get_entity"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.StateMachine.get_entity">[docs]</a>    <span class="k">def</span> <span class="nf">get_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity</span>
+</div>
+<div class="viewcode-block" id="StateMachine.set_entity"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.StateMachine.set_entity">[docs]</a>    <span class="k">def</span> <span class="nf">set_entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_entity</span> <span class="o">=</span> <span class="n">entity</span>
+</div>
+<div class="viewcode-block" id="StateMachine.set_default_state"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.StateMachine.set_default_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_default_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_default_state</span> <span class="o">=</span> <span class="n">state</span>
+</div>
+<div class="viewcode-block" id="StateMachine.set_state"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.StateMachine.set_state">[docs]</a>    <span class="k">def</span> <span class="nf">set_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_state</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_state</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_previous_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_state</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">state</span><span class="p">:</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default_state</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_state</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="n">state</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_state</span> <span class="o">=</span> <span class="n">state</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_state</span><span class="o">.</span><span class="n">entity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_entity</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_state</span><span class="o">.</span><span class="n">set_state_machine</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_state</span><span class="o">.</span><span class="n">enter</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="StateMachine.goto_previous_state"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.StateMachine.goto_previous_state">[docs]</a>    <span class="k">def</span> <span class="nf">goto_previous_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_previous_state</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="StateMachine.update"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.StateMachine.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_state</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_state</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</div></div>
+<div class="viewcode-block" id="State"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.State">[docs]</a><span class="k">class</span> <span class="nc">State</span><span class="p">:</span>
+<div class="viewcode-block" id="State.set_state_machine"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.State.set_state_machine">[docs]</a>    <span class="k">def</span> <span class="nf">set_state_machine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_machine</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state_machine</span> <span class="o">=</span> <span class="n">state_machine</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="State.entity"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.State.entity">[docs]</a>    <span class="k">def</span> <span class="nf">entity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">entity</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state_machine</span><span class="o">.</span><span class="n">get_entity</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="State.goto"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.State.goto">[docs]</a>    <span class="k">def</span> <span class="nf">goto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_state_machine</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="State.enter"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.State.enter">[docs]</a>    <span class="k">def</span> <span class="nf">enter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;entering &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="State.exit"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.State.exit">[docs]</a>    <span class="k">def</span> <span class="nf">exit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;exitting &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="State.update"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.State.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;updating &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="main"><a class="viewcode-back" href="../../modules/triton.html#triton.fsm.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="k">class</span> <span class="nc">CharState</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">string</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">string</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">NumberState</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">string</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot; is a character.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">string</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="k">class</span> <span class="nc">NumberState</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">string</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">string</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">CharState</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">string</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot; is a numeric.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">entity</span><span class="o">.</span><span class="n">string</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="k">class</span> <span class="nc">entity</span><span class="p">:</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">str</span> <span class="o">=</span> <span class="s">&quot;asdfasdfa124123asd&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">string</span> <span class="o">=</span> <span class="nb">str</span>
+
+    <span class="n">e</span> <span class="o">=</span> <span class="n">entity</span><span class="p">()</span>
+    <span class="n">my_machine</span> <span class="o">=</span> <span class="n">StateMachine</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="n">my_machine</span><span class="o">.</span><span class="n">set_state</span><span class="p">(</span><span class="n">CharState</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+        <span class="n">my_machine</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Triton 0.1 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../triton.html" >triton</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Stian Lode.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

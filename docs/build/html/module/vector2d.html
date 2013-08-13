@@ -1,0 +1,190 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>&lt;no title&gt; &mdash; Triton 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Triton 0.1 documentation" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Triton 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <span class="target" id="module-triton.vector2d"></span><dl class="class">
+<dt id="triton.vector2d.Vector2d">
+<em class="property">class </em><tt class="descclassname">triton.vector2d.</tt><tt class="descname">Vector2d</tt><big>(</big><em>*args</em><big>)</big><a class="reference internal" href="../_modules/triton/vector2d.html#Vector2d"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#triton.vector2d.Vector2d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="vector.html#triton.vector.Vector" title="triton.vector.Vector"><tt class="xref py py-class docutils literal"><span class="pre">triton.vector.Vector</span></tt></a></p>
+<dl class="method">
+<dt id="triton.vector2d.Vector2d.angle">
+<tt class="descname">angle</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/triton/vector2d.html#Vector2d.angle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#triton.vector2d.Vector2d.angle" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the angle of a Vector2d object</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>A Vector2d object.</dd>
+<dt>Returns:</dt>
+<dd>Angle of vector in radians</dd>
+<dt>Usage:</dt>
+<dd>angle = my_vect.angle()</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="triton.vector2d.Vector2d.angle_diff">
+<tt class="descname">angle_diff</tt><big>(</big><em>other</em><big>)</big><a class="reference internal" href="../_modules/triton/vector2d.html#Vector2d.angle_diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#triton.vector2d.Vector2d.angle_diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the angle between Vector2d objects</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>A Vector2d object.</dd>
+<dt>Returns:</dt>
+<dd>Angle between two vectors in radians</dd>
+<dt>Usage:</dt>
+<dd>angle = my_vect.angle(other_vect)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="triton.vector2d.Vector2d.copy">
+<tt class="descname">copy</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/triton/vector2d.html#Vector2d.copy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#triton.vector2d.Vector2d.copy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="triton.vector2d.Vector2d.cross">
+<tt class="descname">cross</tt><big>(</big><em>other</em><big>)</big><a class="reference internal" href="../_modules/triton/vector2d.html#Vector2d.cross"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#triton.vector2d.Vector2d.cross" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the cross product between two vectors</p>
+<p>Scalar value corresponding to the z-axis value of the
+cross product in 3d</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>The perpendicular Vector2d</dd>
+<dt>Usage:</dt>
+<dd>new_vect = my_vect.perp()</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="triton.vector2d.Vector2d.perp">
+<tt class="descname">perp</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/triton/vector2d.html#Vector2d.perp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#triton.vector2d.Vector2d.perp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the perpendicular vector</p>
+<dl class="docutils">
+<dt>Returns:</dt>
+<dd>The perpendicular Vector2d</dd>
+<dt>Usage:</dt>
+<dd>new_vect = my_vect.perp()</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="triton.vector2d.Vector2d.rotate">
+<tt class="descname">rotate</tt><big>(</big><em>angle</em><big>)</big><a class="reference internal" href="../_modules/triton/vector2d.html#Vector2d.rotate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#triton.vector2d.Vector2d.rotate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a new Vector2d rotated by argument angle.</p>
+<dl class="docutils">
+<dt>Args:</dt>
+<dd>An angle in radians.</dd>
+<dt>Returns:</dt>
+<dd>A new Vector2d object.</dd>
+<dt>Usage:</dt>
+<dd>new_vect = my_vect.rotate(angle)</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="triton.vector2d.Vector2d.x">
+<tt class="descname">x</tt><a class="reference internal" href="../_modules/triton/vector2d.html#Vector2d.x"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#triton.vector2d.Vector2d.x" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="triton.vector2d.Vector2d.y">
+<tt class="descname">y</tt><a class="reference internal" href="../_modules/triton/vector2d.html#Vector2d.y"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#triton.vector2d.Vector2d.y" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="triton.vector2d.main">
+<tt class="descclassname">triton.vector2d.</tt><tt class="descname">main</tt><big>(</big><big>)</big><a class="reference internal" href="../_modules/triton/vector2d.html#main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#triton.vector2d.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/module/vector2d.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">Triton 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2012, Stian Lode.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

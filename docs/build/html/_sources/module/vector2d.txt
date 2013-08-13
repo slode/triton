@@ -1,0 +1,4 @@
+.. automodule:: triton.vector2d
+   :members:
+   :undoc-members:
+   :show-inheritance:
