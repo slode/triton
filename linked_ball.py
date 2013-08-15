@@ -35,11 +35,13 @@ def main():
     downward = Vector2d(0.0, 9.81)
 
     for i in range(15):
-        pos = Vector2d(random.random()*100.0 + 350.0, random.random()*100.0)
+        pos = Vector2d(random.random()*100.0, random.random()*100.0)
+        vel = Vector2d(20.0, 0.0)
         sphere = Sphere(
             mass = 1.0,
             radius = 4.0,
             pos = pos,
+            vel = vel,
             damping = 0.0,
             elasticity = 0.97
             )
@@ -65,6 +67,13 @@ def main():
             if sphere.y > 650:
                 counter_force = Vector2d(0.0, 100*(650 -sphere.y))
                 sphere.apply_force_to_com(counter_force)
+            if sphere.x < 10:
+                counter_force = Vector2d(100.0*(10.0-sphere.x), 0.0)
+                sphere.apply_force_to_com(counter_force)
+            if sphere.x > 790:
+                counter_force = Vector2d(100.0*(790-sphere.x), 0.0)
+                sphere.apply_force_to_com(counter_force)
+
 
         for sphere in spheres:
             sphere.apply_force_to_com(sphere.mass * downward)
