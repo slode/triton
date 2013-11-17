@@ -1,7 +1,7 @@
 import pygame
 import random, math
 from triton.vector2d import Vector2d
-from triton.shape import Sphere, Rectangle
+from triton.sphere import Sphere, Rectangle
 from triton.spatial_hash import SpatialHash
 
 class Ship(Rectangle):

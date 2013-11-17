@@ -2,7 +2,7 @@ import pygame
 import math
 import random
 from triton.vector2d import Vector2d
-from triton.shape import Sphere
+from triton.sphere import Sphere
 from triton.spatial_hash import SpatialHash
 
 class Obstacle:
