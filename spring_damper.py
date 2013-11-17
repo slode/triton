@@ -1,23 +1,14 @@
 import pygame
 import random, math
 from triton.vector2d import Vector2d
-from triton.shape import Sphere, SpatialHash
+from triton.shape import Sphere
+from triton.spatial_hash import SpatialHash
+from triton.spring_damper_link import SpringDamperLink
 
-class SpringDamperLink:
+class Link(SpringDamperLink):
     def __init__(self, rb1, rb2, damping=.5, spring=1, length=250):
-        self._rb1 = rb1
-        self._rb2 = rb2
-        self._damping = damping
-        self._spring = spring
-        self._length = length
-
-    def resolve(self):
-        x = self._rb1.pos - self._rb2.pos
-        dx = self._rb1.vel - self._rb2.vel
-        n = x.unit_vector()
-        f = self._spring * (self._length - x.length()) - self._damping * dx.dot(n)
-        self._rb1.apply_force_to_com(n * f)
-        self._rb2.apply_force_to_com(n * -f)
+        super(Link, self).__init__(
+                rb1, rb2, damping=damping, spring=spring, length=length)
 
     def draw(self, screen):
         x = self._rb1.pos - self._rb2.pos
@@ -27,8 +18,6 @@ class SpringDamperLink:
         else:
             pygame.draw.aaline(screen, (250,150,150), self._rb1.pos.tuple(), self._rb2.pos.tuple())
 
-
-        
 def main():
     spheres = []
     sphere_col = []
@@ -55,7 +44,7 @@ def main():
     for sphere_from in spheres:
         for sphere_to in spheres:
             if sphere_from != sphere_to: # and random.random()*5 > 4.5:
-                links.append(SpringDamperLink(sphere_from, sphere_to))
+                links.append(Link(sphere_from, sphere_to))
     
     t = 0
     dt = 0.1

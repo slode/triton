@@ -1,33 +1,17 @@
 import pygame
 import random, math
 from triton.vector2d import Vector2d
-from triton.shape import Sphere, SpatialHash
+from triton.shape import Sphere
+from triton.spatial_hash import SpatialHash
+from triton.spring_damper_link import SpringDamperLink
 
-class SpringDamperLink:
+
+class Link(SpringDamperLink):
     def __init__(self, rb1, rb2, damping=0.2, spring=2.0, length=50):
-        self._rb1 = rb1
-        self._rb2 = rb2
-        self._damping = damping
-        self._spring = spring
-        self._length = length
-        self.ripped = False
-
-    def resolve(self):
-        x = self._rb1.pos - self._rb2.pos
-        dx = self._rb1.vel - self._rb2.vel
-        n = x.unit_vector()
-        f = self._spring * (self._length - x.length()) - self._damping * dx.dot(n)
-        if f > 0 or self.ripped:
-            return
-        if f < -65:
-            self.ripped = True
-            return
-        self._rb1.apply_force_to_com(n * f)
-        self._rb2.apply_force_to_com(n * -f)
+        super(Link, self). __init__(
+            self, rb1, rb2, damping=damping, spring=sprint, length=length)
 
     def draw(self, screen):
-        if self.ripped:
-            return
         x = self._rb1.pos - self._rb2.pos
         d = x.length()/self._length
         if 0.9 < d < 1.1:
@@ -64,28 +48,28 @@ def main():
     for i, sphere in enumerate(spheres):
         try:
             down = spheres[i+width]
-            links.append(SpringDamperLink(sphere, down, length=50))
+            links.append(Link(sphere, down, length=50))
         except:
             pass
 
         try:
             if i % width > 0:
                 downright = spheres[i+width-1]
-                #links.append(SpringDamperLink(sphere, downright, length=50*1.40))
+                #links.append(Link(sphere, downright, length=50*1.40))
         except:
             pass
 
         try:
             if (i+1) % width != 0:
                 left = spheres[i+1]
-                links.append(SpringDamperLink(sphere, left, length=50))
+                links.append(Link(sphere, left, length=50))
         except:
             pass
 
         try:
             if (i+1) % width != 0:
                 downleft = spheres[i+width+1]
-                #links.append(SpringDamperLink(sphere, downleft, length=50*1.40))
+                links.append(Link(sphere, downleft, length=50*1.40))
         except:
             pass
 

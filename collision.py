@@ -1,5 +1,6 @@
 from triton.vector2d import Vector2d
-from triton.shape import Sphere, SpatialHash
+from triton.shape import Sphere
+from triton.spatial_hash import SpatialHash
 
 def main():
     import pygame
