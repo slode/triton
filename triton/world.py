@@ -1,14 +1,3 @@
-#-------------------------------------------------------------------------------
-# Name:        World
-# Purpose:
-#
-# Author:      Stian Lode
-#
-# Created:     15.09.2012
-# Copyright:   (c) Stian Lode 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
-
 from triton.vector3d import Vector3d
 
 class World(object):

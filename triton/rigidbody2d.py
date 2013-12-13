@@ -1,14 +1,3 @@
-#-------------------------------------------------------------------------------
-# Name:        RigidBodyEntity
-# Purpose:
-#
-# Author:      Stian Lode
-#
-# Created:     30.08.2012
-# Copyright:   (c) Stian Lode 2012
-# Licence:     GPL
-#-------------------------------------------------------------------------------
-
 from triton.vector import Vector
 from triton.vector2d import Vector2d
 from triton.integrator import Integrator

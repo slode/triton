@@ -1,14 +1,3 @@
-#-------------------------------------------------------------------------------
-# Name:        Integrator
-# Purpose:
-#
-# Author:      Stian Lode
-#
-# Created:     02.09.2012
-# Copyright:   (c) Stian Lode 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
-
 class Integrator:
 
     @classmethod

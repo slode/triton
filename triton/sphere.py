@@ -1,13 +1,3 @@
-#-------------------------------------------------------------------------------
-# Name:        module1
-# Purpose:
-#
-# Author:      Eier
-#
-# Created:     17.09.2012
-# Copyright:   (c) Eier 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
 import math
 from triton.vector2d import Vector2d
 from triton.rigidbody2d import RigidBody2d

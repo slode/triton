@@ -1,14 +1,3 @@
-#-------------------------------------------------------------------------------
-# Name:        module1
-# Purpose:
-#
-# Author:      Eier
-#
-# Created:     15.09.2012
-# Copyright:   (c) Eier 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
-
 from triton.world import World
 from triton.rigidbodyentity import RigidBodyEntity
 

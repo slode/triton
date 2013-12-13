@@ -1,26 +1,3 @@
-#-------------------------------------------------------------------------------
-# Name:        module1
-# Purpose:
-#
-# Author:      Eier
-#
-# Created:     18.09.2012
-# Copyright:   (c) Eier 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
-
-
-#-------------------------------------------------------------------------------
-# Name:        Vector2dTest
-# Purpose:
-#
-# Author:      Stian Lode
-#
-# Created:     01.09.2012
-# Copyright:   (c) Stian Lode 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
-
 import unittest, math
 from triton.vector import Vector
 from triton.vector2d import Vector2d

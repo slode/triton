@@ -1,14 +1,3 @@
-#-------------------------------------------------------------------------------
-# Name:        Vector2dTest
-# Purpose:
-#
-# Author:      Stian Lode
-#
-# Created:     01.09.2012
-# Copyright:   (c) Stian Lode 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
-
 import unittest, math
 from triton.vector import Vector
 from triton.vector3d import Vector3d

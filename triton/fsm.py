@@ -1,14 +1,3 @@
-#-------------------------------------------------------------------------------
-# Name:        StateMachine
-# Purpose:
-#
-# Author:      Stian Lode
-#
-# Created:     30.08.2012
-# Copyright:   (c) Stian Lode 2012
-# Licence:     GPL
-#-------------------------------------------------------------------------------
-
 class StateMachine:
     def __init__(self, entity):
         self._entity = entity

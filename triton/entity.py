@@ -1,13 +1,3 @@
-#-------------------------------------------------------------------------------
-# Name:        Entity
-# Purpose:
-#
-# Author:      Stian Lode
-#
-# Created:     29.08.2012
-# Copyright:   (c) Stian Lode 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
 import uuid
 
 class EntityRegister(object):

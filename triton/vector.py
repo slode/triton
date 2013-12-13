@@ -1,14 +1,3 @@
-#-------------------------------------------------------------------------------
-# Name:        Vector
-# Purpose:
-#
-# Author:      Stian Lode
-#
-# Created:     01.09.2012
-# Copyright:   (c) Stian Lode 2012
-# Licence:     <your licence>
-#-------------------------------------------------------------------------------
-
 import math
 import random
 

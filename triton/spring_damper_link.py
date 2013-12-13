@@ -1,4 +1,3 @@
-
 class SpringDamperLink(object):
     """A link between two rigid bodies.
 
