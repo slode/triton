@@ -8,9 +8,7 @@
 # Copyright:   (c) Eier 2012
 # Licence:     <your licence>
 #-------------------------------------------------------------------------------
+from triton.rectangle import Rectangle
+from triton.sphere import Sphere
 
-def main():
-    pass
 
-if __name__ == '__main__':
-    main()

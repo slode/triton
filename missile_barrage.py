@@ -1,7 +1,8 @@
 import pygame
 import random, math
 from triton.vector2d import Vector2d
-from triton.sphere import Sphere, Rectangle
+from triton.sphere import Sphere
+from triton.rectangle import Rectangle
 from triton.spatial_hash import SpatialHash
 
 class Ship(Rectangle):
@@ -12,7 +13,7 @@ class Ship(Rectangle):
             mass=1.0,
             pos=pos,
             vel=vel,
-            dtheta=0.05 * 180 / math.pi,
+            dtheta=0., #05 * 180 / math.pi,
             damping=0.00,
             elasticity=0.97,
             dimensions=Vector2d(100,40))
@@ -20,7 +21,6 @@ class Ship(Rectangle):
         self.surface = pygame.Surface(self.dimensions.tuple())
 
         dim = self.dimensions
-        pos = self.pos
         rect_tuple = (5, 5, dim.x-10, dim.y-10)
         self.surface.fill((0,100,0))
         pygame.draw.rect(self.surface, (255,0,0), rect_tuple, 0)
@@ -31,8 +31,25 @@ class Ship(Rectangle):
         r = tmp_surface.get_rect(center = self.pos.tuple())
         screen.blit(tmp_surface, r.topleft)
         
+class Ball(Sphere):
+    def __init__(self):
+        super(Ball, self).__init__(
+            radius=3,
+            mass=1.0,
+            pos=Vector2d(425.0, 425.0),
+            vel=Vector2d(0.0, -10.0),
+            damping=0.00,
+            elasticity=0.97)
+
+    def draw(self, screen):
+        pygame.draw.circle(
+            screen, (255, 0, 0), self.pos.tuple(), self.radius, 0) 
+        
+
+
 def main():
-    rect = Ship()
+    ship = Ship()
+    ball = Ball()
     t = 0
     dt = 0.1
 
@@ -42,11 +59,14 @@ def main():
     while not pygame.QUIT in [e.type for e in pygame.event.get()]:
         screen.fill((255,245,225))
 
-        pygame.draw.aaline(screen, (0, 0, 0), (0, 650), (800, 650))
+        ship.draw(screen)
+        ball.draw(screen)
 
-        rect.draw(screen)
+        if ship.collides_with(ball):
+            ship.resolve_collision(ball)
 
-        rect.update(t, dt)
+        ship.update(t, dt)
+        ball.update(t, dt)
 
         pygame.display.flip()
         clock.tick(50)

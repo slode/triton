@@ -18,17 +18,18 @@ class Rectangle(RigidBody2d):
         self._dimensions = value
 
     def collides_with(self, other):
-        center = Vector2d(1,0).rotate(self.theta).normalize()
-        center_perp = center.perp()
+        if hasattr(other, 'radius'):
+            center = Vector2d(1,0).rotate(self.theta).normalize()
+            center_perp = center.perp()
 
-        relative_pos = other.pos - self.pos
-        dist = relative_pos.dot(center)
-        lateral_dist = relative_pos.dot(center_perp)
+            relative_pos = other.pos - self.pos
+            dist = relative_pos.dot(center)
+            lateral_dist = relative_pos.dot(center_perp)
 
-        if (abs(dist) <= self.dimensions.x/2 + other.radius and
-            abs(lateral_dist) <= self.dimensions.y/2+other.radius):
-            return True
-        return False
+            if (abs(dist) <= self.dimensions.x/2 + other.radius and
+                abs(lateral_dist) <= self.dimensions.y/2+other.radius):
+                return True
+            return False
 
     def resolve_collision(self, other):
         # Get point of impact
