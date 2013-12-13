@@ -1,10 +1,8 @@
-==================================================
- Triton - A Simple Game Engine in Python
-==================================================
+========
+Triton
+========
 
-Introduction
-============
+Triton is a library for creating small two dimensional contraptions made from
+rigid bodies, spring-damper links and duct tape.
 
-Triton is a simple game engine written in Python 
-as a sandbox to to try out various components of a 
-typical game engine.
+The examples require pygame to be installed.
