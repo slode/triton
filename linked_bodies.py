@@ -8,8 +8,8 @@ from triton.spring_damper_link import SpringDamperLink
 
 class Link(SpringDamperLink):
     def __init__(self, rb1, rb2, damping=0.2, spring=2.0, length=50):
-        super(Link, self). __init__(
-            self, rb1, rb2, damping=damping, spring=sprint, length=length)
+        super(Link, self).__init__(
+            rb1, rb2, damping=damping, spring=spring, length=length)
 
     def draw(self, screen):
         x = self._rb1.pos - self._rb2.pos
@@ -41,7 +41,9 @@ def main():
                 )
 
             spheres.append(sphere)
-            sphere_col.append((int(sphere.x)%255,int(sphere.y)%255,int(sphere.radius)*255%255))
+            sphere_col.append((int(sphere.x)%255,
+                               int(sphere.y)%255,
+                               int(sphere.radius)*255%255))
 
 
     links = []
@@ -49,28 +51,28 @@ def main():
         try:
             down = spheres[i+width]
             links.append(Link(sphere, down, length=50))
-        except:
+        except IndexError:
             pass
 
         try:
             if i % width > 0:
                 downright = spheres[i+width-1]
-                #links.append(Link(sphere, downright, length=50*1.40))
-        except:
+                links.append(Link(sphere, downright, length=50*1.40))
+        except IndexError:
             pass
 
         try:
             if (i+1) % width != 0:
                 left = spheres[i+1]
                 links.append(Link(sphere, left, length=50))
-        except:
+        except IndexError:
             pass
 
         try:
             if (i+1) % width != 0:
                 downleft = spheres[i+width+1]
                 links.append(Link(sphere, downleft, length=50*1.40))
-        except:
+        except IndexError:
             pass
 
     t = 0
@@ -78,7 +80,7 @@ def main():
 
     screen = pygame.display.set_mode((800, 800))
     clock = pygame.time.Clock()
-
+    
     grid = SpatialHash()
     while not pygame.QUIT in [e.type for e in pygame.event.get()]:
         grid.update(spheres)
@@ -90,12 +92,13 @@ def main():
             link.resolve()
 
         screen.fill((255,245,225))
-        for link in links:
-            link.draw(screen)
 
         for n, sphere in enumerate(spheres):
             pygame.draw.circle(
                     screen, sphere_col[n], sphere.pos.tuple(), int(sphere.radius), 0)
+
+        for link in links:
+            link.draw(screen)
 
         for sphere in spheres[width:]:
             sphere.update(t, dt)

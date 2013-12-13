@@ -1,6 +1,6 @@
 import math
 
-from vector2d import Vector2d
+from triton.vector2d import Vector2d
 
 def bounding_box(polygon):
     p1 = polygon[0]
