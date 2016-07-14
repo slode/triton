@@ -38,7 +38,7 @@ class SpatialHash(object):
 
     def _add_body(self, body):
         for i in self._sweep(body):
-                self._grid.setdefault(i, []).append(body)
+            self._grid.setdefault(i, []).append(body)
 
     def _hash(self, x, y):
         return x + y * int(self._map_size.x/self._grid_size)

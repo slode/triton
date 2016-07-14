@@ -401,6 +401,8 @@ def main():
     a*=-b
     c = a*b-b+a*2-1
     print(a)
+    a *= a
+    print(a)
 
 
 if __name__ == '__main__':

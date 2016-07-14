@@ -6,7 +6,7 @@ from triton.spatial_hash import SpatialHash
 from triton.spring_damper_link import SpringDamperLink
 
 class Link(SpringDamperLink):
-    def __init__(self, rb1, rb2, damping=.1, spring=1.0, length=50):
+    def __init__(self, rb1, rb2, damping=.3, spring=0.7, length=50):
         super(Link, self).__init__(
             rb1, rb2, damping=damping, spring=spring, length=length)
 
@@ -36,8 +36,8 @@ def main():
     center = Vector2d(400.0, 400.0)
     downward = Vector2d(0.0, 9.81)
 
-    width = 6
-    length = 6
+    width = 10
+    length = 10
     for y in range(1, length+1):
         for x in range(1, width+1):
             pos = Vector2d(float(100.0*x), float(100.0 + -x*20.0+20.0*y))
@@ -84,7 +84,7 @@ def main():
             pass
 
     t = 0
-    dt = 0.1
+    dt = 0.2
 
     screen = pygame.display.set_mode((800, 800))
     clock = pygame.time.Clock()

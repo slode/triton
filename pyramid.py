@@ -27,7 +27,7 @@ from triton.spatial_hash import SpatialHash
 from triton.spring_damper_link import SpringDamperLink
 
 class Link(SpringDamperLink):
-    def __init__(self, rb1, rb2, damping=.3, spring=1.8, length=70):
+    def __init__(self, rb1, rb2, damping=.3, spring=0.9, length=70):
         super(Link, self).__init__(
                 rb1, rb2, damping=damping, spring=spring, length=length)
 
