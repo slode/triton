@@ -71,13 +71,17 @@ class FinishScreen(GameState):
         self.rank = 0
         self.highscores = []
 
-        if self.success:
-            for line in open("highscore_" + self.persist['level'], "r+").readlines():
-                self.highscores.append(float(line))
+        if self.success and self.score > 0:
+            try:
+                for line in open("highscore_" + self.persist['level'], "r+").readlines():
+                    self.highscores.append(float(line))
+            except:
+                pass
+
             import bisect
             self.rank = bisect.bisect_left(self.highscores, self.score)
-            self.highscores.insert(rank, self.score)
-            with open("highscore_" + self.persist['level'], "r+") as f:
+            self.highscores.insert(self.rank, self.score)
+            with open("highscore_" + self.persist['level'], "w+") as f:
                 for score in self.highscores:
                     f.write("{0}\n".format(score))
 
@@ -91,7 +95,7 @@ class FinishScreen(GameState):
 
         if self.success:
             title = self.font.render(
-                    "Success! You scored {0} points!\nRank {1}.".format(self.score, self.rank),
+                    "Success! You scored {0} points! [Rank {1}].".format(self.score, self.rank),
                     True, pg.Color("dodgerblue"))
             title_rect = title.get_rect(center=self.screen_rect.center)
             surface.blit(title, title_rect)
@@ -106,12 +110,6 @@ class Gameplay(GameState):
     def __init__(self):
         super(Gameplay, self).__init__()
         self.initial_velocity = None
-        self.entities = []
-        self.started = False
-        self.paused = False
-        self.starfield = Starfield(self.screen_rect)
-        self.show_cursor = False
-        self.time = 0.0
         self.next_state = "FINISHED"
         
     def startup(self, persistent):
@@ -127,7 +125,7 @@ class Gameplay(GameState):
 
         # Load level
         for line in open(self.persist['level']).readlines():
-            mass, size, pos, vel, mutable  = line.split(":")
+            mass, size, pos, vel, mutable, color  = line.split(":")
             pos = pos.split(",")
             vel = vel.split(",")
             mutable = mutable.startswith('1')
@@ -139,6 +137,8 @@ class Gameplay(GameState):
                     vel=Vector2d(float(vel[0]), float(vel[1])),
                     elasticity = 0.97,)
             entity.mutable = mutable
+            c = map(int, color.split(","))
+            entity.color = pg.Color(*c)
             self.entities.append(entity)
         
     def get_event(self, event):
@@ -196,7 +196,6 @@ class Gameplay(GameState):
             self.starfield.update()
         else:
             pass
-                 
 
     def draw(self, surface):
         surface.fill(pg.Color("Black"))
@@ -214,14 +213,14 @@ class Gameplay(GameState):
                 int(entity.pos[0]),
                 int(entity.pos[1]),
                 int(entity.radius),
-                (220,250,100))
+                entity.color)
 
             pg.gfxdraw.filled_circle(
                 surface,
                 int(entity.pos[0]),
                 int(entity.pos[1]),
                 int(entity.radius),
-                (220,250,100))
+                entity.color)
         
 
         label = self.font.render(str(self.initial_velocity), True, pg.Color("dodgerblue"))
