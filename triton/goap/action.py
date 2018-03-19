@@ -82,7 +82,7 @@ def goal_planner(agent):
     def validate_actions(state, actions, goal_conditions, cost=0):
 
         if set(goal_conditions.items()) <= set(state.items()):
-            return cost
+            return [cost]
 
         valid_actions = []
         for action in actions:
@@ -97,7 +97,7 @@ def goal_planner(agent):
                         cost + action.cost)
 
                 if total_cost is not None:
-                    valid_actions.append((total_cost, action))
+                    valid_actions.append(total_cost + [action])
 
         if len(valid_actions) == 0:
             return None
@@ -113,49 +113,33 @@ def goal_planner(agent):
         v = validate_actions(state, actions, goal_conditions)
 
         try:
-            if v == 0:
-                #debug("Already satisfied " + str(goal))
+            if v is None:
+                continue
+            if v == [0]:
                 continue
             elif v == None:
-                #debug("Can't reach " + str(goal))
                 continue
-#            debug("Found plan for " + str(goal))
-            plans.append(flatten(v))
+            plans.append(v)
         except:
             pass
 
-    # Pick the fastest plan
+    # Pick the plan that leads to goal fulfillment at least cost.
     plans.sort()
     try:
         return plans[0][-1]
     except:
         pass
 
-def flatten(l, ltypes=(list, tuple)):
-    ltype = type(l)
-    l = list(l)
-    i = 0
-    while i < len(l):
-        while isinstance(l[i], ltypes):
-            if not l[i]:
-                l.pop(i)
-                i -= 1
-                break
-            else:
-                l[i:i + 1] = l[i]
-        i += 1
-    return ltype(l)
-
 if __name__ == "__main__":
 
     class StealOre(Action):
         preconditions = {"hasMoney": False }
         effects = {"hasOre": True, "hasFun": False}
-        cost = 20.0
+        cost = 10.0
 
     class MineOre(Action):
         preconditions = {"hasTool": True, "hasOre": False}
-        effects = {"hasOre": True, "hasFun": False}
+        effects = {"hasOre": True}
 
         def perform(self, agent):
             if agent.state.setdefault("tool_age", 0) > 5:
@@ -196,6 +180,7 @@ if __name__ == "__main__":
     gimli.set_goal(Goal({"hasTool": True}))
     gimli.set_goal(Goal({"hasMoney": True}))
     gimli.set_goal(Goal({"hasFun": True}))
+    gimli.set_goal(Goal({"hasOre": True}))
 
     while True:
         if gimli.verify_goals():
