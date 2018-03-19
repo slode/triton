@@ -17,8 +17,12 @@ class Action:
     def check_precondition(self):
         return True
 
+    def _perform(self, agent):
+        debug("Performing " + str(self) + ".")
+        self.perform(agent)
+
     def perform(self, agent):
-        print("Performing " + str(self) + ".")
+        pass
 
     def __str__(self):
         return self.__repr__()
@@ -33,6 +37,9 @@ class Goal:
     def get_conditions(self):
         return self.conditions
 
+    def __str__(self):
+        return "Goal: "+ str(self.conditions)
+
 
 class Agent:
     def __init__(self):
@@ -45,7 +52,9 @@ class Agent:
         raise NotImplementedError()
 
     def do_action(self, action):
-        action.perform(self)
+        if action is None:
+            return
+        action._perform(self)
         self.state.update(action.effects)
 
     def set_goal(self, goal):
@@ -55,14 +64,20 @@ class Agent:
         return self.goals
 
     def verify_goals(self):
+        satisfied = []
         for g in self.goals:
-            if set(g.get_conditions().items()) <= set(self.state.items()):
-                self.goals.remove(g)
-        return len(self.goals) == 0
+            if (set(g.get_conditions().items()) <= set(self.state.items())):
+                satisfied.append(True)
+            else:
+                satisfied.append(False)
+#                self.goals.remove(g)
+#                self.goals.append(g)
+        return all(satisfied) #len(self.goals) == 0
+
+def debug(msg):
+    print(msg)
 
 def goal_planner(agent):
-    actions = set(action() for action in agent.actions)
-    state = dict(agent.state)
 
     def validate_actions(state, actions, goal_conditions, cost=0):
 
@@ -84,32 +99,70 @@ def goal_planner(agent):
                 if total_cost is not None:
                     valid_actions.append((total_cost, action))
 
-        if not valid_actions:
+        if len(valid_actions) == 0:
             return None
 
         valid_actions.sort()
         return valid_actions[0]
 
-    v = None
+    plans = []
     for goal in agent.goals:
         goal_conditions = dict(goal.get_conditions())
-        v = validate_actions(state, actions.copy(), goal_conditions)
-        if v is not None:
-            break
+        actions = set(action() for action in agent.actions)
+        state = agent.state.copy()
+        v = validate_actions(state, actions, goal_conditions)
 
-    if v is not None:
-        return v[-1]
+        try:
+            if v == 0:
+                #debug("Already satisfied " + str(goal))
+                continue
+            elif v == None:
+                #debug("Can't reach " + str(goal))
+                continue
+#            debug("Found plan for " + str(goal))
+            plans.append(flatten(v))
+        except:
+            pass
+
+    # Pick the fastest plan
+    plans.sort()
+    try:
+        return plans[0][-1]
+    except:
+        pass
+
+def flatten(l, ltypes=(list, tuple)):
+    ltype = type(l)
+    l = list(l)
+    i = 0
+    while i < len(l):
+        while isinstance(l[i], ltypes):
+            if not l[i]:
+                l.pop(i)
+                i -= 1
+                break
+            else:
+                l[i:i + 1] = l[i]
+        i += 1
+    return ltype(l)
 
 if __name__ == "__main__":
 
     class StealOre(Action):
-        preconditions = {"hasMoney": False}
-        effects = {"hasOre": True}
+        preconditions = {"hasMoney": False }
+        effects = {"hasOre": True, "hasFun": False}
         cost = 20.0
 
     class MineOre(Action):
         preconditions = {"hasTool": True, "hasOre": False}
-        effects = {"hasOre": True}
+        effects = {"hasOre": True, "hasFun": False}
+
+        def perform(self, agent):
+            if agent.state.setdefault("tool_age", 0) > 5:
+                debug("Tool broken!")
+                agent.state["hasTool"] = False
+                agent.state["tool_age"] = 0
+            agent.state["tool_age"] += 1
 
     class SellOre(Action):
         preconditions = {"hasOre": True}
@@ -118,10 +171,11 @@ if __name__ == "__main__":
     class Drink(Action):
         preconditions = {"hasMoney": True}
         effects = {"hasFun": True, "hasMoney": False}
+        cost = 2.0
 
     class Brawl(Action):
-        preconditions = {"hasFun": False, "hasMoney": False}
-        effects = {}
+        preconditions = {"hasFun": False}
+        effects = {"hasFun": True}
         cost = 20.0
 
     class BuyTool(Action):
@@ -140,6 +194,7 @@ if __name__ == "__main__":
 
     gimli = Dwarf()
     gimli.set_goal(Goal({"hasTool": True}))
+    gimli.set_goal(Goal({"hasMoney": True}))
     gimli.set_goal(Goal({"hasFun": True}))
 
     while True:
