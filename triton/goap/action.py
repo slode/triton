@@ -38,6 +38,9 @@ class Goal:
         return self.conditions
 
     def __str__(self):
+        return self.repr()
+
+    def __repr__(self):
         return "Goal: "+ str(self.conditions)
 
 
@@ -64,15 +67,10 @@ class Agent:
         return self.goals
 
     def verify_goals(self):
-        satisfied = []
         for g in self.goals:
             if (set(g.get_conditions().items()) <= set(self.state.items())):
-                satisfied.append(True)
-            else:
-                satisfied.append(False)
-#                self.goals.remove(g)
-#                self.goals.append(g)
-        return all(satisfied) #len(self.goals) == 0
+                self.goals.remove(g)
+        return len(self.goals) == 0
 
 def debug(msg):
     print(msg)
@@ -114,10 +112,10 @@ def goal_planner(agent):
 
         try:
             if v is None:
+                debug("No valid plan")
                 continue
             if v == [0]:
-                continue
-            elif v == None:
+                debug("Goal reached")
                 continue
             plans.append(v)
         except:
