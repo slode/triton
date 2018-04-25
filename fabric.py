@@ -4,6 +4,7 @@ from triton.vector2d import Vector2d
 from triton.sphere import Sphere
 from triton.spatial_hash import SpatialHash
 from triton.spring_damper_link import SpringDamperLink
+from triton.cursor import Cursor
 
 class Link(SpringDamperLink):
     def __init__(self, rb1, rb2, damping=.3, spring=0.7, length=50):
@@ -54,6 +55,7 @@ def main():
             spheres.append(sphere)
             sphere_col.append((int(sphere.x)%255,int(sphere.y)%255,int(sphere.radius)*255%255))
 
+    sphere_col.append((int(sphere.x)%255,int(sphere.y)%255,int(sphere.radius)*255%255))
     links = []
     for i, sphere in enumerate(spheres):
         try:
@@ -84,14 +86,36 @@ def main():
             pass
 
     t = 0
-    dt = 0.2
+    dt = 0.15
 
     screen = pygame.display.set_mode((800, 800))
     clock = pygame.time.Clock()
 
+    cursor = Cursor()
     grid = SpatialHash()
-    while not pygame.QUIT in [e.type for e in pygame.event.get()]:
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                cursor.pos = Vector2d(pos[0], pos[1])
+                cursor.press()
+                spheres.append(cursor)
+                print(cursor.pos)
+            elif event.type == pygame.MOUSEBUTTONUP:
+                spheres.remove(cursor)
+                cursor.release()
+
         grid.update(spheres)
+
+        if cursor.is_pressed():
+            pos = pygame.mouse.get_pos()
+            cursor.pos = Vector2d(pos[0], pos[1])
+            for neighbour in grid.nearby_objects(cursor):
+                if cursor.collides_with(neighbour):
+                    cursor.resolve_collision(neighbour)
+
 
         for sphere in spheres:
             sphere.apply_force_to_com(sphere.mass * downward)
