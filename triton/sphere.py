@@ -50,7 +50,7 @@ class Sphere(RigidBody2d):
 
         #edge case where spheres spawn on top of each other
         dist = (relative_pos).length()
-        if dist == 0:
+        while dist == 0:
             self.pos += self.pos.random()
             relative_pos = other.pos - self.pos
             dist = (relative_pos).length()

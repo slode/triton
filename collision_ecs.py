@@ -73,8 +73,8 @@ class RenderSystem(System):
                     r.sphere.pos.tuple(),
                     int(r.sphere.radius),
                     0)
-        pygame.display.flip()
         self.clock.tick(60)
+        pygame.display.flip()
 
 class CollisionSystem(System):
     def update(self):
@@ -97,18 +97,18 @@ class GravitationalSystem(System):
             fvect = c.center - r.sphere.pos
             r.sphere.apply_force(
                     r.sphere.pos,
-                    fvect.normalize() * float(r.sphere.mass) * c.g / fvect.length_sq())
+                    fvect.normalize() * r.sphere.mass * c.g / fvect.length_sq())
 
 def main():
     regs = Registry()
 
     for i in range(15):
         sphere = Sphere(
-            mass = random.randrange(10, 50),
-            radius = random.randrange(10, 30),
+            mass = float(random.randrange(10.0, 50.0)),
+            radius = random.randrange(10.0, 30.0),
             pos = Vector2d(random.randrange(800.0),
                            random.randrange(800.0)),
-            damping = 0,
+            damping = 0.0,
             elasticity = 0.97
             )
         regs.add_entity(
