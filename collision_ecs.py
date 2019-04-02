@@ -46,12 +46,17 @@ class RigidBody(Component):
 class Movable(Component):
     pass
 
+class ChangeCenterEvent(Component):
+    pass
+
 class FlipColorsEvent(Component):
     pass
 
 class GameQuitEvent(Component):
     pass
 
+class OneFrame(Component):
+    pass
 
 class Drawable(Component):
     def __init__(self):
@@ -80,29 +85,35 @@ class RenderSystem(System):
     def __init__(self):
         self.screen = pygame.display.set_mode((800, 800))
         self.clock = pygame.time.Clock()
+        self.draw = None
+        self.toggle_draw()
+    
+    def toggle_draw(self):
+        self.draw = (pygame.gfxdraw.aacircle
+                if self.draw == pygame.gfxdraw.filled_circle
+                else pygame.gfxdraw.filled_circle)
 
     def update(self, *args, **kwargs):
-        flip = self.registry.get_entities(FlipColorsEvent)
-        draw = (pygame.gfxdraw.aacircle 
-                if flip
-                else pygame.gfxdraw.filled_circle)
+        if self.registry.get_entities(FlipColorsEvent):
+            self.toggle_draw()
 
         self.screen.fill((255,245,225))
         for e, (r, d) in self.registry.get_components(
                 RigidBody, Drawable):
-            draw(self.screen,
-                 int(r.sphere.pos[0]),
-                 int(r.sphere.pos[1]),
-                 int(r.sphere.radius),
-                 d.color)
+            self.draw(self.screen,
+                     int(r.sphere.pos[0]),
+                     int(r.sphere.pos[1]),
+                     int(r.sphere.radius),
+                     d.color)
 
         for e, (c, d) in self.registry.get_components(
                 Centroid, Drawable):
-            draw(self.screen,
-                 int(c.center[0]),
-                 int(c.center[1]),
-                 int(10),
-                 (20,20,20))
+            self.draw(self.screen,
+                     int(c.center[0]),
+                     int(c.center[1]),
+                     int(10),
+                     (20,20,20))
+
         self.clock.tick(60)
         pygame.display.flip()
 
@@ -117,7 +128,9 @@ class CollisionSystem(System):
 
 class GravitationalSystem(System):
     def update(self):
-        ec, [c] = next(self.registry.get_components(Centroid))
+        e, [c] = next(self.registry.get_components(Centroid))
+        if self.registry.get_entities(ChangeCenterEvent):
+            c.new_c()
         for e, (r, m) in self.registry.get_components(
                 RigidBody, Movable):
             force_vect = c.center - r.sphere.pos
@@ -125,25 +138,25 @@ class GravitationalSystem(System):
                     r.sphere.pos,
                     force_vect.normalize() * r.sphere.mass * c.g / force_vect.length_sq())
 
+class EventCleanerSystem(System):
+    def update(self):
+        for e, (_) in self.registry.get_components(OneFrame):
+            self.registry.remove_entity(e)
+
 class InputSystem(System):
     def update(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.registry.add_entity(GameQuitEvent())
+                self.registry.add_entity(GameQuitEvent(), OneFrame())
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_q:
-                    self.registry.add_entity(GameQuitEvent())
+                    self.registry.add_entity(GameQuitEvent(), OneFrame())
                 elif event.key == pygame.K_ESCAPE:
-                    self.registry.add_entity(GameQuitEvent())
+                    self.registry.add_entity(GameQuitEvent(), OneFrame())
                 elif event.key == pygame.K_f:
-                    e = self.registry.get_entities(FlipColorsEvent)
-                    if e:
-                        self.registry.remove_entities(e)
-                    else:
-                        self.registry.add_entity(FlipColorsEvent())
+                    self.registry.add_entity(FlipColorsEvent(), OneFrame())
                 elif event.key == pygame.K_c:
-                    e, [c] = next(self.registry.get_components(Centroid))
-                    c.new_c()
+                    self.registry.add_entity(ChangeCenterEvent(), OneFrame())
 
 def main():
     regs = Registry()
@@ -166,6 +179,7 @@ def main():
             Centroid(),
             Drawable())
 
+    regs.add_system(EventCleanerSystem())
     regs.add_system(InputSystem())
     regs.add_system(CollisionSystem())
     regs.add_system(GravitationalSystem())
