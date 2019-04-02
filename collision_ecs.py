@@ -61,6 +61,7 @@ class SimulationSystem(System):
 class RenderSystem(System):
     def __init__(self):
         self.screen = pygame.display.set_mode((800, 800))
+        self.clock = pygame.time.Clock()
 
     def update(self, *args, **kwargs):
         self.screen.fill((255,245,225))
@@ -72,6 +73,8 @@ class RenderSystem(System):
                     r.sphere.pos.tuple(),
                     int(r.sphere.radius),
                     0)
+        pygame.display.flip()
+        self.clock.tick(60)
 
 class CollisionSystem(System):
     def update(self):
@@ -89,7 +92,6 @@ class GravitationalSystem(System):
 
     def update(self):
         c, = self.registry.get_entity(self.cent, Centroid) 
-
         for e, (r, m) in self.registry.get_components(
                 RigidBody, Movable):
             fvect = c.center - r.sphere.pos
@@ -118,13 +120,9 @@ def main():
     regs.add_system(GravitationalSystem(regs.add_entity(Centroid())))
     regs.add_system(SimulationSystem())
     regs.add_system(RenderSystem())
-    clock = pygame.time.Clock()
 
     while not pygame.QUIT in [e.type for e in pygame.event.get()]:
-
         regs.update()
-        pygame.display.flip()
-        pygame.time.wait(10)
 
 
 if __name__ == '__main__':

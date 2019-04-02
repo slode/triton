@@ -56,8 +56,10 @@ def main():
 
     xrange_offset = Vector2d(10, 0)
     yrange_offset = Vector2d(0, 10)
-
+    from triton.timer import Stopwatch
+    sw = Stopwatch("sim time")
     while not pygame.QUIT in [e.type for e in pygame.event.get()]:
+        sw.start()
         grid.update(spheres)
 
         if random.randrange(1, 1000) == 1:
@@ -86,10 +88,12 @@ def main():
             sphere1 = spheres[i]
             sphere1.update(t, dt)
 
+        sw.stop()
 
         pygame.display.flip()
 #        pygame.time.wait(10)
         t += dt
+    sw.report()
 
 
 if __name__ == '__main__':
