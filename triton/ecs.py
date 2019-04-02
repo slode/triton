@@ -36,20 +36,33 @@ class Registry:
             self._components[comp_type] = set()
         self._components[comp_type].add(entity)
 
+    def remove_entities(self, entities):
+        for entity in entities:
+            self.remove_entity(entity)
+
+    def remove_entity(self, entity):
+        comps = list(self._entities[entity].values())
+        [self.remove_component(entity, comp) for comp in comps]
+        self._entities.pop(entity)
+
     def remove_component(self, entity, component):
-        comp_type = type(comp)
-        if comp_type in self._entities[entity]:
-            del self._entities[entity][comp_type]
+        comp_type = type(component)
+        self._entities[entity].pop(comp_type)
         self._components[comp_type].remove(entity)
 
     def get_components(self, *types):
         comps = self._components
         ents = self._entities
+        for ent in self.get_entities(*types):
+            yield ent, self.get_entity(ent, *types)
+
+    def get_entities(self, *types):
+        comps = self._components
+        ents = self._entities
         try:
-            for ent in set.intersection(*[comps[t] for t in types]):
-                yield ent, [ents[ent][t] for t in types]
+            return set.intersection(*[comps[t] for t in types])
         except KeyError:
-            pass
+            return set()
 
     def get_entity(self, entity, *types):
         ents = self._entities
