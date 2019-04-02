@@ -24,8 +24,6 @@ from triton.sphere import Sphere
 from triton.spatial_hash import SpatialHash
 from triton.ecs import Registry, System, Component
 
-import pygame
-import pygame.gfxdraw
 import random
 
 ############################
@@ -36,6 +34,11 @@ class Centroid(Component):
         self.center = center
         self.g = g
 
+    def new_c(self):
+        self.center = Vector2d(random.randrange(800.0),
+                               random.randrange(800.0))
+
+
 class RigidBody(Component):
     def __init__(self, sphere):
         self.sphere = sphere
@@ -45,8 +48,10 @@ class Movable(Component):
 
 class FlipColorsEvent(Component):
     pass
+
 class GameQuitEvent(Component):
     pass
+
 
 class Drawable(Component):
     def __init__(self):
@@ -69,7 +74,8 @@ class SimulationSystem(System):
             r.sphere.update(self.t, self.dt)
         self.t += self.dt
 
-
+import pygame
+import pygame.gfxdraw
 class RenderSystem(System):
     def __init__(self):
         self.screen = pygame.display.set_mode((800, 800))
@@ -77,10 +83,9 @@ class RenderSystem(System):
 
     def update(self, *args, **kwargs):
         flip = self.registry.get_entities(FlipColorsEvent)
-        if flip:
-            draw = pygame.gfxdraw.aacircle
-        else:
-            draw = pygame.gfxdraw.filled_circle
+        draw = (pygame.gfxdraw.aacircle 
+                if flip
+                else pygame.gfxdraw.filled_circle)
 
         self.screen.fill((255,245,225))
         for e, (r, d) in self.registry.get_components(
@@ -90,6 +95,14 @@ class RenderSystem(System):
                  int(r.sphere.pos[1]),
                  int(r.sphere.radius),
                  d.color)
+
+        for e, (c, d) in self.registry.get_components(
+                Centroid, Drawable):
+            draw(self.screen,
+                 int(c.center[0]),
+                 int(c.center[1]),
+                 int(10),
+                 (20,20,20))
         self.clock.tick(60)
         pygame.display.flip()
 
@@ -128,6 +141,9 @@ class InputSystem(System):
                         self.registry.remove_entities(e)
                     else:
                         self.registry.add_entity(FlipColorsEvent())
+                elif event.key == pygame.K_c:
+                    e, [c] = next(self.registry.get_components(Centroid))
+                    c.new_c()
 
 def main():
     regs = Registry()
@@ -146,7 +162,9 @@ def main():
                 Drawable(),
                 Movable())
 
-    regs.add_entity(Centroid())
+    regs.add_entity(
+            Centroid(),
+            Drawable())
 
     regs.add_system(InputSystem())
     regs.add_system(CollisionSystem())
