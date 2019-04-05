@@ -34,9 +34,8 @@ class Centroid(Component):
         self.center = center
         self.g = g
 
-    def new_c(self):
-        self.center = Vector2d(random.randrange(800.0),
-                               random.randrange(800.0))
+    def new_c(self, pos=(400,400)):
+        self.center = Vector2d(pos[0], pos[1])
 
 class RigidBody(Component):
     def __init__(self, sphere):
@@ -46,7 +45,8 @@ class Movable(Component):
     pass
 
 class ChangeCenterEvent(Component):
-    pass
+    def __init__(self, pos):
+        self.pos = pos
 
 class FlipColorsEvent(Component):
     pass
@@ -128,8 +128,8 @@ class CollisionSystem(System):
 class GravitationalSystem(System):
     def update(self):
         e, [c] = next(self.registry.get_components(Centroid))
-        if self.registry.get_entities(ChangeCenterEvent):
-            c.new_c()
+        for ev, [event] in self.registry.get_components(ChangeCenterEvent):
+            c.new_c(event.pos)
         for e, (r, m) in self.registry.get_components(
                 RigidBody, Movable):
             force_vect = c.center - r.sphere.pos
@@ -154,19 +154,24 @@ class InputSystem(System):
                     self.registry.add_entity(GameQuitEvent(), OneFrame())
                 elif event.key == pygame.K_f:
                     self.registry.add_entity(FlipColorsEvent(), OneFrame())
-                elif event.key == pygame.K_c:
-                    self.registry.add_entity(ChangeCenterEvent(), OneFrame())
+
+        p, _, _ = pygame.mouse.get_pressed()
+        if p:
+             self.registry.add_entity(
+                     ChangeCenterEvent(pygame.mouse.get_pos()),
+                     OneFrame())
 
 def main():
     regs = Registry()
 
     for i in range(30):
+        m = float(random.randrange(10, 30))
         sphere = Sphere(
-            mass = float(random.randrange(10.0, 50.0)),
-            radius = random.randrange(10.0, 30.0),
+            mass = m,
+            radius = int(m),
             pos = Vector2d(random.randrange(800.0),
                            random.randrange(800.0)),
-            damping = 0.0,
+            damping = 0.01,
             elasticity = 0.97
             )
         regs.add_entity(

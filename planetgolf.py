@@ -159,7 +159,7 @@ class Gameplay(GameState):
             self.cursor = Vector2d([float(i) for i in p])
             player = self.entities[0].pos
             diff = self.cursor - player
-            if diff < 100:
+            if diff.length() < 1000:
                 self.show_cursor = True
                 diff /= 50
                 self.initial_velocity = diff
