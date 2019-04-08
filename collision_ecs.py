@@ -22,7 +22,7 @@
 from triton.vector2d import Vector2d
 from triton.sphere import Sphere
 from triton.spatial_hash import SpatialHash
-from triton.ecs import Registry, System, Component
+from triton.ecs import Registry, System, Component, Event
 
 import random
 
@@ -48,13 +48,18 @@ class ChangeCenterEvent(Component):
     def __init__(self, pos):
         self.pos = pos
 
-class FlipColorsEvent(Component):
+class CollisionEvent(Event):
+    def __init__(self, e1, e2):
+        self.e1 = e1
+        self.e2 = e2
+
+class FlipColorsEvent(Event):
     pass
 
-class GameQuitEvent(Component):
+class GameQuitEvent(Event):
     pass
 
-class OneFrame(Component):
+class TickEvent(Event):
     pass
 
 class Drawable(Component):
@@ -68,11 +73,12 @@ class Drawable(Component):
 ###       Systems        ###
 ############################
 class SimulationSystem(System):
-    def __init__(self, t=0, dt=0.1):
+    def initialize(self, t=0, dt=0.1):
         self.t = t
         self.dt = dt
+        self.on(TickEvent, self.update)
 
-    def update(self, *args, **kwargs):
+    def update(self, _):
         for e, (r, m) in self.registry.get_components(
                 RigidBody, Movable):
             r.sphere.update(self.t, self.dt)
@@ -81,21 +87,20 @@ class SimulationSystem(System):
 import pygame
 import pygame.gfxdraw
 class RenderSystem(System):
-    def __init__(self):
+    def initialize(self):
         self.screen = pygame.display.set_mode((800, 800))
         self.clock = pygame.time.Clock()
         self.draw = None
-        self.toggle_draw()
+        self.on(FlipColorsEvent, self.toggle_draw)
+        self.on(TickEvent, self.tick)
+        self.emit(FlipColorsEvent())
 
-    def toggle_draw(self):
+    def toggle_draw(self, _):
         self.draw = (pygame.gfxdraw.aacircle
                 if self.draw == pygame.gfxdraw.filled_circle
                 else pygame.gfxdraw.filled_circle)
 
-    def update(self, *args, **kwargs):
-        if self.registry.get_entities(FlipColorsEvent):
-            self.toggle_draw()
-
+    def tick(self, _):
         self.screen.fill((255,245,225))
         for e, (r, d) in self.registry.get_components(
                 RigidBody, Drawable):
@@ -116,50 +121,77 @@ class RenderSystem(System):
         self.clock.tick(60)
         pygame.display.flip()
 
-class CollisionSystem(System):
-    def update(self):
-        for e, (r, m) in self.registry.get_components(
+class CollisionCheckSystem(System):
+    def initialize(self):
+        self.on(TickEvent, self.tick)
+
+    def tick(self, _):
+        for e1, (r, m) in self.registry.get_components(
                 RigidBody, Movable):
             for e2, (r2, m2) in self.registry.get_components(
                     RigidBody, Movable):
-                if e < e2 and r.sphere.collides_with(r2.sphere):
-                    r.sphere.resolve_collision(r2.sphere)
+                if e1 < e2 and r.sphere.collides_with(r2.sphere):
+                    self.emit(CollisionEvent(e1, e2))
+
+class CollisionSystem(System):
+    def initialize(self):
+        self.on(CollisionEvent, self.on_collision)
+
+    def on_collision(self, c):
+        [r1] = self.registry.get_entity(c.e1, RigidBody)
+        [r2] = self.registry.get_entity(c.e2, RigidBody)
+        r1.sphere.resolve_collision(r2.sphere)
 
 class GravitationalSystem(System):
-    def update(self):
+    def initialize(self):
+        self.on(ChangeCenterEvent, self.on_change_center_event)
+        self.on(TickEvent, self.tick)
+
+    def on_change_center_event(self, ccevent):
         e, [c] = next(self.registry.get_components(Centroid))
-        for ev, [event] in self.registry.get_components(ChangeCenterEvent):
-            c.new_c(event.pos)
-        for e, (r, m) in self.registry.get_components(
+        c.new_c(ccevent.pos)
+
+    def tick(self, _):
+        e, [c] = next(self.registry.get_components(Centroid))
+        for er, (r, m) in self.registry.get_components(
                 RigidBody, Movable):
             force_vect = c.center - r.sphere.pos
             r.sphere.apply_force(
                     r.sphere.pos,
                     force_vect.normalize() * r.sphere.mass * c.g / force_vect.length_sq())
 
-class EventCleanerSystem(System):
-    def update(self):
-        for e, (_) in self.registry.get_components(OneFrame):
-            self.registry.remove_entity(e)
-
 class InputSystem(System):
-    def update(self):
+    def initialize(self):
+        self.on(TickEvent, self.tick)
+
+    def tick(self, _):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.registry.add_entity(GameQuitEvent(), OneFrame())
+                self.emit(GameQuitEvent())
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_q:
-                    self.registry.add_entity(GameQuitEvent(), OneFrame())
+                    self.emit(GameQuitEvent())
                 elif event.key == pygame.K_ESCAPE:
-                    self.registry.add_entity(GameQuitEvent(), OneFrame())
+                    self.emit(GameQuitEvent())
                 elif event.key == pygame.K_f:
-                    self.registry.add_entity(FlipColorsEvent(), OneFrame())
+                    self.emit(FlipColorsEvent())
 
         p, _, _ = pygame.mouse.get_pressed()
         if p:
-             self.registry.add_entity(
-                     ChangeCenterEvent(pygame.mouse.get_pos()),
-                     OneFrame())
+             self.emit(ChangeCenterEvent(pygame.mouse.get_pos()))
+
+class GameLoopSystem(System):
+    def initialize(self):
+        self.on(GameQuitEvent, self.quit)
+        self.on(TickEvent, self.tick)
+        self.emit(TickEvent())
+
+    def quit(self, _):
+        pygame.quit()
+        exit(0)
+
+    def tick(self, _):
+        self.emit(TickEvent())
 
 def main():
     regs = Registry()
@@ -183,14 +215,15 @@ def main():
             Centroid(),
             Drawable())
 
-    regs.add_system(EventCleanerSystem())
     regs.add_system(InputSystem())
+    regs.add_system(CollisionCheckSystem())
     regs.add_system(CollisionSystem())
     regs.add_system(GravitationalSystem())
     regs.add_system(SimulationSystem())
     regs.add_system(RenderSystem())
+    regs.add_system(GameLoopSystem())
 
-    while not any(regs.get_components(GameQuitEvent)):
+    while True:
         regs.update()
 
 if __name__ == '__main__':

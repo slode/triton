@@ -1,13 +1,38 @@
 
+class Event(object):
+    pass
+
 class Component(object):
     pass
 
 class System(object):
     def __init__(self):
         self.registry = None
+        self.listeners = {}
+        self.events = []
 
-    def update(self, *args, **kwargs):
-        raise NotImplementedError()
+    def initialize(self):
+        raise NotImplementedError(self.__class__)
+
+    def on(self, event, callback):
+        if event not in self.listeners:
+            self.listeners[event] = []
+        self.listeners[event].append(callback)
+
+    def _receive(self, etype, einstance):
+        if etype not in self.listeners:
+            return
+        self.events.append((etype, einstance))
+
+    def emit(self, einstance):
+        self.registry._propagate_event(einstance)
+        
+    def _update(self):
+        event_queue = self.events
+        self.events = []
+        for etype, einst in event_queue:
+            for listener in self.listeners[etype]:
+                listener(einst)
 
 class Registry:
     def __init__(self):
@@ -16,9 +41,15 @@ class Registry:
         self._entity_id = 0
         self._systems = []
 
+    def _propagate_event(self, einstance):
+        etype = type(einstance)
+        for system in self._systems:
+            system._receive(etype, einstance)
+
     def add_system(self, system):
         system.registry = self
         self._systems.append(system)
+        system.initialize()
 
     def add_entity(self, *components):
         self._entity_id += 1
@@ -68,7 +99,7 @@ class Registry:
         ents = self._entities
         return [ents[entity][t] for t in types]
 
-    def update(self, *args, **kwargs):
+    def update(self):
         for system in self._systems:
-            system.update(*args, **kwargs)
+            system._update()
 
