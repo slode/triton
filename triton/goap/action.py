@@ -83,6 +83,7 @@ def goal_planner(agent):
             return [cost]
 
         valid_actions = []
+
         for action in actions:
             if set(action.preconditions.items()) <= set(state.items()):
                 new_state = state.copy()
@@ -95,12 +96,13 @@ def goal_planner(agent):
                         cost + action.cost)
 
                 if total_cost is not None:
-                    valid_actions.append(total_cost + [action])
+                    total_cost.append(action)
+                    valid_actions.append(total_cost)
 
         if len(valid_actions) == 0:
             return None
 
-        valid_actions.sort()
+        valid_actions.sort(key=lambda plan: plan[0])
         return valid_actions[0]
 
     plans = []
