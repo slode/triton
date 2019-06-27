@@ -5,7 +5,7 @@ from starfield import Starfield
 
 import pygame as pg
 import pygame.gfxdraw
-import sys
+import sys, os
 
         
 class Planet(Sphere):
@@ -39,7 +39,7 @@ class SplashScreen(GameState):
     
     def update(self, dt):
         self.starfield.update()
-        self.persist['level'] = "planets.txt"
+        self.persist['level'] = os.path.join(os.path.dirname(__file__), "planets.txt")
 
     def draw(self, surface):
         surface.fill(pg.Color("black"))
