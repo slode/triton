@@ -4,7 +4,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="triton-slode",
+    name="triton-2d-physics",
     version="0.0.1",
     author="Stian Lode",
     author_email="stian.lode@gmail.com",
