@@ -27,7 +27,7 @@ class System(object):
     def emit(self, einstance):
         self.registry._propagate_event(einstance)
         
-    def _update(self):
+    def _process(self):
         event_queue = self.events
         self.events = []
         for etype, einst in event_queue:
@@ -99,7 +99,7 @@ class Registry:
         ents = self._entities
         return [ents[entity][t] for t in types]
 
-    def update(self):
+    def process(self):
         for system in self._systems:
-            system._update()
+            system._process()
 
