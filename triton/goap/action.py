@@ -57,8 +57,8 @@ class Agent:
     def do_action(self, action):
         if action is None:
             return
-        action._perform(self)
-        self.state.update(action.effects)
+        if action._perform(self) != False:
+            self.state.update(action.effects)
 
     def set_goal(self, goal):
         self.goals.insert(0, goal)
@@ -128,14 +128,17 @@ def goal_planner(agent):
     try:
         return plans[0][-1]
     except:
-        pass
+        return False
 
 if __name__ == "__main__":
 
     class StealOre(Action):
-        preconditions = {"hasMoney": False }
+        preconditions = {"hasOre": False }
         effects = {"hasOre": True, "hasFun": False}
         cost = 10.0
+        
+        def perform(self, agent):
+            agent.state["gold"] += 4
 
     class MineOre(Action):
         preconditions = {"hasTool": True, "hasOre": False}
@@ -150,12 +153,21 @@ if __name__ == "__main__":
 
     class SellOre(Action):
         preconditions = {"hasOre": True}
-        effects = {"hasOre": False, "hasMoney": True}
+        effects = {"hasOre": False, "needMoney": False}
+        def perform(self, agent):
+            agent.state["gold"] += 4
+
 
     class Drink(Action):
-        preconditions = {"hasMoney": True}
-        effects = {"hasFun": True, "hasMoney": False}
+        preconditions = {"needMoney": False}
+        effects = {"hasFun": True}
         cost = 2.0
+
+        def perform(self, agent):
+            if agent.state["gold"] < 10:
+                agent.set_goal(Goal({"needMoney": True}))
+                return False
+            return True
 
     class Brawl(Action):
         preconditions = {"hasFun": False}
@@ -163,12 +175,20 @@ if __name__ == "__main__":
         cost = 20.0
 
     class BuyTool(Action):
-        preconditions = {"hasTool": False, "hasMoney": True}
-        effects = {"hasTool": True, "hasMoney": False}
+        preconditions = {"hasTool": False, "needMoney": False}
+        effects = {"hasTool": True}
+
+        def perform(self, agent):
+            if agent.state["gold"] < 10:
+                agent.set_goal(Goal({"needMoney": True}))
+                return False
+            else:
+                agent.state["gold"] -= 10
+                agent.state["hasTool"] = True
 
     class Dwarf(Agent):
         def init(self):
-            self.state = {"hasTool": False, "hasOre": False, "hasMoney": False, "hasFun": False}
+            self.state = {"hasTool": False, "hasOre": False, "hasFun": False, "gold": 0}
             self.actions.append(MineOre)
             self.actions.append(StealOre)
             self.actions.append(SellOre)
@@ -177,14 +197,16 @@ if __name__ == "__main__":
             self.actions.append(Brawl)
 
     gimli = Dwarf()
-    gimli.set_goal(Goal({"hasTool": True}))
-    gimli.set_goal(Goal({"hasMoney": True}))
-    gimli.set_goal(Goal({"hasFun": True}))
-    gimli.set_goal(Goal({"hasOre": True}))
+#    gimli.set_goal(Goal({"hasTool": True}))
+    gimli.set_goal(Goal({"needMoney": False}))
+#    gimli.set_goal(Goal({"hasFun": True}))
+#    gimli.set_goal(Goal({"hasOre": True}))
 
     while True:
         if gimli.verify_goals():
             print("Reached goal")
             break
         action = goal_planner(gimli)
+        if not action:
+            break
         gimli.do_action(action)
