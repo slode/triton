@@ -50,6 +50,7 @@ class Registry:
         system.registry = self
         self._systems.append(system)
         system.initialize()
+        return system
 
     def add_entity(self, *components):
         self._entity_id += 1
