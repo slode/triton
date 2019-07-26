@@ -67,7 +67,6 @@ class Ball(Sphere):
             screen, (255, 0, 0), self.pos.tuple(), self.radius, 0) 
         
 
-
 def main():
     ship = Ship()
     ball = Ball()

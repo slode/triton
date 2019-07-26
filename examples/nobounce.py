@@ -42,7 +42,22 @@ class RigidBody(Component):
         self.sphere = sphere
 
 class Movable(Component):
-    pass
+    def __init__(self):
+        self.force = 0
+        self.max_force = 10.0
+
+class Wandering(Component):
+    def __init__(self):
+        self.displacement = Vector2d(1.0,0.0)
+        self.dist = 30.0
+
+class Seeking(Component):
+    def __init__(self, target=None):
+        self.target = target
+
+class Evading(Component):
+    def __init__(self, target=None):
+        self.target = target
 
 class ChangeCenterEvent(Component):
     def __init__(self, pos):
@@ -142,7 +157,8 @@ class CollisionSystem(System):
         [r2] = self.registry.get_entity(c.e2, RigidBody)
         r1.sphere.resolve_collision(r2.sphere)
 
-class GravitationalSystem(System):
+from triton.steering import *
+class ForceSystem(System):
     def initialize(self):
         self.on(ChangeCenterEvent, self.on_change_center_event)
         self.on(TickEvent, self.tick)
@@ -152,13 +168,43 @@ class GravitationalSystem(System):
         c.new_c(ccevent.pos)
 
     def tick(self, _):
+
+        for er, (r, m, p) in self.registry.get_components(
+                RigidBody, Movable, Seeking):
+            if p.target is None:
+                continue
+            (rt,) = self.registry.get_entity(p.target,
+                    RigidBody)
+            m.force += pursuit(
+                    r.sphere.pos, r.sphere.vel,
+                    rt.sphere.pos, rt.sphere.vel)
+
+        for er, (r, m, e) in self.registry.get_components(
+                RigidBody, Movable, Evading):
+            if e.target is None:
+                continue
+            (rt,) = self.registry.get_entity(e.target,
+                    RigidBody)
+            m.force += evade_within(
+                    r.sphere.pos, r.sphere.vel,
+                    rt.sphere.pos, rt.sphere.vel, 50.0)
+
+        for er, (r, m, w) in self.registry.get_components(
+                RigidBody, Movable, Wandering):
+            m.force += wander(r.sphere.pos, r.sphere.vel, w.displacement, w.dist)
+
         e, [c] = next(self.registry.get_components(Centroid))
         for er, (r, m) in self.registry.get_components(
                 RigidBody, Movable):
-            force_vect = c.center - r.sphere.pos
-            r.sphere.apply_force(
-                    r.sphere.pos,
-                    force_vect.normalize() * r.sphere.mass * c.g / force_vect.length_sq())
+            m.force += arrive(r.sphere.pos, r.sphere.vel,
+                    c.center, 50.0)
+
+        for er, (r, m) in self.registry.get_components(
+                RigidBody, Movable):
+            m.force = truncate(m.force, m.max_force)
+            r.sphere.apply_force_to_com(
+                    m.force / r.sphere.mass)
+            m.force = Vector2d(0.0, 0.0)
 
 class InputSystem(System):
     def initialize(self):
@@ -196,20 +242,31 @@ class GameLoopSystem(System):
 def main():
     regs = Registry()
 
-    for i in range(30):
-        m = float(random.randrange(10, 30))
+    for i in range(10):
+        m = float(random.randrange(10.0, 20.0))
         sphere = Sphere(
-            mass = m,
+            mass = m/10.0,
             radius = int(m),
             pos = Vector2d(random.randrange(800.0),
                            random.randrange(800.0)),
-            damping = 0.01,
-            elasticity = 0.97
+            damping = 0.30,
+            elasticity = 0.90
             )
         regs.add_entity(
                 RigidBody(sphere),
                 Drawable(),
-                Movable())
+                Movable(),
+                Seeking(target=4))
+#,
+#                Evading(target=3))
+#                Wandering())
+
+    regs.add_component(4, Wandering())
+    regs.add_component(3, Wandering())
+    regs.remove_component(4, Seeking())
+    regs.remove_component(3, Seeking())
+#    regs.remove_component(4, Evading())
+#    regs.remove_component(3, Evading())
 
     regs.add_entity(
             Centroid(),
@@ -218,7 +275,7 @@ def main():
     regs.add_system(InputSystem())
     regs.add_system(CollisionCheckSystem())
     regs.add_system(CollisionSystem())
-    regs.add_system(GravitationalSystem())
+    regs.add_system(ForceSystem())
     regs.add_system(SimulationSystem())
     regs.add_system(RenderSystem())
     regs.add_system(GameLoopSystem())
