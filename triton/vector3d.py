@@ -81,7 +81,7 @@ def main():
     b = Vector3d([5, -5, 0])
     print(a, b)
     c = b.cross(a)
-    print c
+    print(c)
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
     fig = plt.figure()

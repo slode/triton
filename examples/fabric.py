@@ -4,7 +4,8 @@ from triton.vector2d import Vector2d
 from triton.sphere import Sphere
 from triton.spatial_hash import SpatialHash
 from triton.spring_damper_link import SpringDamperLink
-from triton.cursor import Cursor
+
+from cursor import Cursor
 
 class Link(SpringDamperLink):
     def __init__(self, rb1, rb2, damping=.3, spring=0.7, length=50):
