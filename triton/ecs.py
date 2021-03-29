@@ -58,6 +58,11 @@ class Registry:
             self.add_component(self._entity_id, c)
         return self._entity_id
 
+    def remove_entity(self, entity):
+        comps = list(self._entities[entity].values())
+        [self.remove_component(entity, comp) for comp in comps]
+        self._entities.pop(entity)
+
     def add_component(self, entity, comp):
         comp_type = type(comp)
         if entity not in self._entities:
@@ -68,19 +73,17 @@ class Registry:
             self._components[comp_type] = set()
         self._components[comp_type].add(entity)
 
+    def remove_component(self, entity, component):
+        if isinstance(component, type):
+            comp_type = component
+        else:
+            comp_type = type(component)
+        self._entities[entity].pop(comp_type, None)
+        self._components.get(comp_type, set()).discard(entity)
+
     def remove_entities(self, entities):
         for entity in entities:
             self.remove_entity(entity)
-
-    def remove_entity(self, entity):
-        comps = list(self._entities[entity].values())
-        [self.remove_component(entity, comp) for comp in comps]
-        self._entities.pop(entity)
-
-    def remove_component(self, entity, component):
-        comp_type = type(component)
-        self._entities[entity].pop(comp_type)
-        self._components[comp_type].remove(entity)
 
     def get_components(self, *types):
         comps = self._components
@@ -98,7 +101,7 @@ class Registry:
 
     def get_entity(self, entity, *types):
         ents = self._entities
-        return [ents[entity][t] for t in types]
+        return [ents[entity].get(t) for t in types]
 
     def process(self):
         for system in self._systems:
