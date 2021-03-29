@@ -22,7 +22,7 @@
 from triton.vector2d import Vector2d
 from triton.sphere import Sphere
 from triton.spatial_hash import SpatialHash
-from triton.ecs import Registry, System, Component, Event
+from triton.ecs.ecs import Registry, System, Component, Event
 
 import random
 

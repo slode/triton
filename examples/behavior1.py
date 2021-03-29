@@ -1,4 +1,4 @@
-from triton.behavior_tree import *
+from triton.behavior.behavior_tree import *
 
 from random import random
 
