@@ -39,7 +39,6 @@ class CoordScaler:
             if not 0 < screen_coords.x < screen_size.x:
                 pass
         
-
 def main():
     import pygame
     from collections import deque

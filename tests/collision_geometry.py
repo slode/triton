@@ -53,9 +53,6 @@ def point_in_polygon(point, polygon):
     if point_outside_box(point, bb):
         return False
 
-
-    
-
 def main():
     polygon = []
     polygon.append(Vector2d(0.0, 0.0))
@@ -69,8 +66,6 @@ def main():
 
     assert not point_outside_box(point_inside, bounding_box(polygon))
     assert point_outside_box(point_outside, bounding_box(polygon))
-
-
 
 if __name__ == '__main__':
     main()
