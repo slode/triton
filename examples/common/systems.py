@@ -2,7 +2,7 @@ from triton.vector2d import Vector2d
 from triton.sphere import Sphere
 from triton.ecs.ecs import Registry, System, Component, Event
 
-from components import *
+from .components import *
 
 class SimulationSystem(System):
     def initialize(self, t=0, dt=0.1):

@@ -24,8 +24,8 @@ from triton.vector2d import Vector2d
 from triton.sphere import Sphere
 from triton.spring_damper_link import SpringDamperLink
 
-from systems import *
-from components import *
+from common.systems import *
+from common.components import *
 
 def main():
     regs = Registry()

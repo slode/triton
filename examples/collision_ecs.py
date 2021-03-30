@@ -26,8 +26,8 @@ from triton.ecs.ecs import Registry, System, Component, Event
 
 import random
 
-from systems import *
-from components import *
+from common.systems import *
+from common.components import *
 
 def main():
     regs = Registry()

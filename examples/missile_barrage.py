@@ -30,6 +30,7 @@ class Ship(Rectangle):
     def __init__(self):
         pos = Vector2d(400.0, 400.0)
         vel = Vector2d(.0, .0)
+        self.radius = 20.0
         super(Ship, self).__init__(
             mass=1.0,
             pos=pos,

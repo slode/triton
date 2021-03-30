@@ -1,7 +1,7 @@
 from triton.gamestate import Game, GameState
 from triton.vector2d import Vector2d
 from triton.sphere import Sphere
-from starfield import Starfield
+from common.starfield import Starfield
 
 import pygame as pg
 import pygame.gfxdraw
