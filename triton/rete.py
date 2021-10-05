@@ -69,7 +69,7 @@ class AlphaNode(Node):
         for child in self.children:
             if isinstance(child, AlphaMemoryNode):
                 return child
-        return self.add_child(net.alpha_memory())
+        return self.add_child(net.alpha_memory(parent=self))
 
 class AlphaMemoryNode(Node):
     def __init__(self, **kwargs):
@@ -171,23 +171,44 @@ class Rete:
         self._alpha_root = AlphaNode(None, net=self)
         self._alpha_memory = {}
         self._beta_memory = {}
-        self._terminal_nodes = {}
+        self._wmes = {}
 
     def __json__(self):
         return {
             "_type": "rete-network",
             "alpha_memory": self._alpha_memory,
-            "beta_memory": self._beta_memory
+            "beta_memory": self._beta_memory,
+            "wmes": self._wmes
         }
 
     def add_wme(self, wme):
+        if wme.id in self._wmes:
+            for w in self._wmes[wme.id]:
+                if w.attr == wme.attr:
+                    self.retract_wme(w)
+
         self._alpha_root.add_wme(wme)
+        self._wmes.setdefault(wme.id, []).append(wme)
+
+    def retract_wme(self, wme):
+        for alphamem in self._alpha_memory.values():
+            if wme.id not in alphamem.wmes:
+                continue
+            if wme == alphamem.wmes[wme.id]:
+                alphamem.wmes.pop(wme.id)
+
+        for betamem in self._beta_memory.values():
+            if wme.id not in betamem.tokens:
+                continue
+            for w in betamem.tokens[wme.id]:
+                if w == wme:
+                    betamem.tokens[wme.id].remove(w)
 
     def alpha_net(self):
         return self._alpha_root
 
-    def alpha_memory(self):
-        alpha_memory = AlphaMemoryNode(net=self)
+    def alpha_memory(self, **kwargs):
+        alpha_memory = AlphaMemoryNode(net=self, **kwargs)
         self._alpha_memory[alpha_memory.name] = alpha_memory
         return alpha_memory
 
@@ -234,6 +255,7 @@ net.add_wme(wme("x", "size", "SMALL"))
 net.add_wme(wme("x", "size", "LARGE"))
 net.add_wme(wme("y", "size", "LARGE"))
 net.add_wme(wme("y", "color", "GREEN"))
+net.retract_wme(wme("y", "size", "LARGE"))
 net.add_wme(wme("y", "size", "SMALL"))
 net.add_wme(wme("z", "color", "GREEN"))
 net.add_wme(wme("z", "size", "LARGE"))
