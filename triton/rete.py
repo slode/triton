@@ -25,37 +25,62 @@ class Node:
 
 
 class AlphaNode(Node):
-    def __init__(self, match=None, target=None, **kwargs):
+    import operator
+    TEST_OPERATOR = {
+        "=": operator.eq,
+        "==": operator.eq,
+        "<=": operator.le,
+        ">=": operator.ge,
+        "<": operator.lt,
+        ">": operator.gt,
+        "!=": operator.ne,
+        "<>": operator.ne,
+        "~=": operator.ne
+    }
+    def __init__(self, test, **kwargs):
         super().__init__(type="alpha-node", **kwargs)
-        self.match = match
-        self.target = target
+        self.test = test
 
     def __json__(self):
         doc = super().__json__()
-        doc.update({"match": self.match, "target": self.target})
+        doc.update({"test": self.test})
         return doc
 
     def add_wme(self, wme):
-        if self.match is not None:
-            if getattr(wme, self.match) != self.target:
+        if self.test is not None:
+            if not wme.attr == self.test.attr:
+                return
+            if not self.TEST_OPERATOR[self.test.operand](wme.value, self.test.target):
                 return
 
         for child in self.children:
             child.add_wme(wme)
 
+    def add_test(self, test):
+        for child in self.children:
+            if child.test == test:
+                return child
+        return self.add_child(AlphaNode(test))
+
+    def add_memory(self):
+        for child in self.children:
+            if isinstance(child, AlphaMemoryNode):
+                return child
+        return self.add_child(net.alpha_memory())
+
 class AlphaMemoryNode(Node):
     def __init__(self, **kwargs):
         super().__init__(type="alpha-memory-node", **kwargs)
-        self.wmes = set()
+        self.wmes = {}
         self.name = gensym("AM")
 
     def __json__(self):
         doc = super().__json__()
-        doc.update({"name": self.name, "wmes": [wme for wme in self.wmes]})
+        doc.update({"name": self.name, "wmes": self.wmes})
         return doc
 
     def add_wme(self, wme):
-        self.wmes.add(wme)
+        self.wmes[wme.id] = wme
         # calls beta nodes
         for child in self.children:
             assert isinstance(child, BetaNode)
@@ -63,17 +88,15 @@ class AlphaMemoryNode(Node):
 
 
 class BetaNode(Node):
-    def __init__(self, **kwargs):
+    def __init__(self, parent=None, alpha_memory=None, **kwargs):
         super().__init__(type="beta-node", **kwargs)
-        self.beta_memory = None
-        self.alpha_memory = None
-        self.name = gensym("B")
-        self.tests = []
+        self.parent = parent
+        if self.parent is not None:
+            parent.add_child(self)
 
-    def __json__(self):
-        doc = super().__json__()
-        doc.update({"beta_memory": self.beta_memory.name, "alpha_memory": self.alpha_memory.name, "tests": self.tests})
-        return doc
+        self.alpha_memory = alpha_memory
+        assert self.alpha_memory is not None
+        alpha_memory.add_child(self)
 
     def join_test(self, token, wme):
         for token_wme in token:
@@ -81,49 +104,43 @@ class BetaNode(Node):
                 return False
         return True
 
+    def __json__(self):
+        doc = super().__json__()
+        doc.update({"parent": self.parent.name, "alpha_memory": self.alpha_memory.name, "tests": self.tests})
+        return doc
+
     def right_activation(self, wme):
-        for token in self.beta_memory.tokens:
-            if self.join_test(token, wme):
+        if self.parent is None:
+            for child in self.children:
+                child.left_activation([], wme)
+        else:
+            if wme.id in self.parent.tokens:
+                token = self.parent.tokens[wme.id]
                 for child in self.children:
                     child.left_activation(token, wme)
 
-        # Dummy memory
-        if not self.beta_memory.tokens:
-            for child in self.children:
-                child.left_activation([], wme)
-
     def left_activation(self, token):
-        for wme in self.alpha_memory.wmes:
+        for wme in self.alpha_memory.wmes.values():
             if self.join_test(token, wme):
                 for child in self.children:
                     assert isinstance(child, (BetaMemoryNode, ProductionNode))
                     child.left_activation(token, wme)
 
-    def add_beta_parent(self, beta_memory):
-        self.beta_memory = beta_memory
-        beta_memory.add_child(self)
-        return beta_memory
-
-    def add_alpha_parent(self, alpha_memory):
-        self.alpha_memory = alpha_memory
-        alpha_memory.add_child(self)
-        return alpha_memory
-
 class BetaMemoryNode(Node):
     def __init__(self, **kwargs):
         super().__init__(type="beta-memory-node", **kwargs)
         self.name = gensym("BM")
-        self.tokens = []
+        self.tokens = {}#[]
 
     def __json__(self):
         doc = super().__json__()
-        doc.update({"tokens": self.tokens})
+        doc.update({"name": self.name, "tokens": self.tokens})
         return doc
 
     def left_activation(self, token, wme):
-        # token = token.copy()
+        token = token.copy()
         token.append(wme)
-        self.tokens.append(token)
+        self.tokens.setdefault(wme.id, []).append(token)
         for child in self.children:
             assert isinstance(child, BetaNode)
             child.left_activation(token)
@@ -132,21 +149,22 @@ class ProductionNode(Node):
     def __init__(self, callback=lambda x:x, **kwargs):
         super().__init__(type="production-node", **kwargs)
         self.callback = callback
+        self.tokens = {}
 
     def __json__(self):
         doc = super().__json__()
-        doc.update({"callback": str(self.callback.__code__.__str__())})
+        doc.update({"callback": str(self.callback.__code__.__str__()), "token": self.tokens})
         return doc
 
     def left_activation(self, token, wme):
         token.append(wme)
+        self.tokens[wme.id] = token
         self.callback(token)
 
 class Rete:
     def __init__(self):
-        self._alpha_net = AlphaNode(net=self)
+        self._alpha_net = AlphaNode(None, net=self)
         self._alpha_memory = {}
-        self._beta_net = {}
         self._beta_memory = {}
         self._terminal_nodes = {}
 
@@ -155,7 +173,6 @@ class Rete:
                 "_type": "rete",
                 # "alpha_net": self._alpha_net,
                 "alpha_memory": self._alpha_memory,
-                # "beta_net": self._beta_net,
                 "beta_memory": self._beta_memory
                 }
 
@@ -171,15 +188,11 @@ class Rete:
         self._alpha_memory[alpha_memory.name] = alpha_memory
         return alpha_memory
 
-    def beta_node(self, beta_parent=None, alpha_parent=None, child=None):
-        beta_node = BetaNode()
-        beta_node.net = self
-        if beta_parent is None:
-            beta_parent = self.beta_memory()
-        beta_node.add_beta_parent(beta_parent)
-        beta_node.add_alpha_parent(alpha_parent)
+    def beta_node(self, parent=None, alpha_memory=None, child=None):
+        beta_node = BetaNode(parent=parent, alpha_memory=alpha_memory, net=self)
+        if child is None:
+            child = self.beta_memory()
         beta_node.add_child(child)
-        self._beta_net[beta_node.name] = beta_node
         return child
 
     def beta_memory(self):
@@ -191,34 +204,37 @@ class Rete:
     def production(self, *conds, production):
         bnode = None
         for test in conds:
-            anode = net._alpha_net.add_child(AlphaNode(match="attr", target=test.attr)).add_child(AlphaNode(match="value", target=test.target)).add_child(net.alpha_memory())
-            bnode = net.beta_node(
-                beta_parent=bnode,
-                alpha_parent=anode,
-                child=ProductionNode(callback=production) if test == conds[-1] else net.beta_memory())
+            amemory = self._alpha_net.add_test(test).add_memory()
+            bnode = self.beta_node(
+                parent=bnode,
+                alpha_memory=amemory,
+                child=ProductionNode(callback=production) if test == conds[-1] else None)
 
 wme = namedtuple("WME", ["id", "attr", "value"])
-test = namedtuple("TEST", ["attr", "operand", "target"])
+test = namedtuple("ALPHA_TEST", ["attr", "operand", "target"])
 
 net = Rete()
 net.production(
         test("color", "==", "WHITE"),
-        test("size", "==", "LARGE"),
+        test("size", "==", "SMALL"),
         production=lambda x: print("PROD:", x))
 net.production(
-        test("color", "==", "GREEN"),
-        production=lambda x: print("PROD2:", x))
+        test("count", "<", 3),
+        production=lambda x: print("count is less than 3:", x))
 net.production(
-        test("color", "==", "GREEN"),
+        test("color", "!=", "GREEN"),
         test("size", "==", "LARGE"),
         production=lambda x: print("PROD3:", x))
 
-# net.add_wme(wme("x", "color", "WHITE"))
-# net.add_wme(wme("x", "size", "LARGE"))
+net.add_wme(wme("x", "color", "WHITE"))
+net.add_wme(wme("x", "size", "SMALL"))
+net.add_wme(wme("x", "size", "LARGE"))
 net.add_wme(wme("y", "size", "LARGE"))
 net.add_wme(wme("y", "color", "GREEN"))
+net.add_wme(wme("y", "size", "SMALL"))
+net.add_wme(wme("z", "color", "GREEN"))
+net.add_wme(wme("z", "size", "LARGE"))
 net.add_wme(wme("y", "color", "WHITE"))
-# net.add_wme(wme("z", "color", "GREEN"))
-# net.add_wme(wme("z", "size", "LARGE"))
-net.add_wme(wme("y", "color", "GREEN"))
+net.add_wme(wme("y", "count", 4))
+net.add_wme(wme("y", "count", 2))
 # print(json.dumps(net.alpha_net(), default=lambda o: o.__json__(), indent=2, sort_keys=True))
