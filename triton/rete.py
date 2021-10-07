@@ -82,8 +82,13 @@ class AlphaMemoryNode(Node):
         doc.update({"name": self.name, "wmes": self.wmes})
         return doc
 
+    def retract_wme(self, wme):
+        if wme.id in self.wmes:
+            self.wmes.pop(wme.id)
+
     def add_wme(self, wme):
         self.wmes[wme.id] = wme
+        self.net.add_retraction(wme, self)
         # calls beta nodes
         for child in self.children:
             assert isinstance(child, BetaNode)
@@ -139,12 +144,15 @@ class BetaMemoryNode(Node):
         doc.update({"name": self.name, "tokens": self.tokens})
         return doc
 
+    def retract_wme(self, wme):
+        if wme.id in self.tokens:
+            self.tokens.pop(wme.id)
+        
     def left_activation(self, token, wme):
         token = token.copy()
         token.append(wme)
-        if wme.id in self.tokens:
-            print(self.tokens[wme.id])
         self.tokens[wme.id] = token
+        self.net.add_retraction(wme, self)
         for child in self.children:
             assert isinstance(child, BetaNode)
             child.left_activation(token)
@@ -182,27 +190,12 @@ class Rete:
         }
 
     def add_wme(self, wme):
-        if wme.id in self._wmes:
-            for w in self._wmes[wme.id]:
-                if w.attr == wme.attr:
-                    self.retract_wme(w)
-
+        for node in self._wmes.get((wme.id, wme.attr), set()):
+            node.retract_wme(wme)
         self._alpha_root.add_wme(wme)
-        self._wmes.setdefault(wme.id, []).append(wme)
 
-    def retract_wme(self, wme):
-        for alphamem in self._alpha_memory.values():
-            if wme.id not in alphamem.wmes:
-                continue
-            if wme == alphamem.wmes[wme.id]:
-                alphamem.wmes.pop(wme.id)
-
-        for betamem in self._beta_memory.values():
-            if wme.id not in betamem.tokens:
-                continue
-            for w in betamem.tokens[wme.id]:
-                if w == wme:
-                    del betamem.tokens[wme.id]
+    def add_retraction(self, wme, node):
+        self._wmes.setdefault(((wme.id, wme.attr)), set()).add(node)
 
     def alpha_net(self):
         return self._alpha_root
@@ -240,26 +233,26 @@ net.production(
         test("color", "==", "WHITE"),
         test("size", "==", "SMALL"),
         test("count", "<", 5),
-        production=lambda token: print("A", " and ".join(["{}.{} is {}".format(wme.id, wme.attr, wme.value) for wme in token])))
+        production=lambda token: print("A", " and ".join(["{0.id}.{0.attr} is {0.value}".format(wme) for wme in token])))
 net.production(
         test("count", "<", 3),
-        production=lambda token: print("B", " and ".join(["{}.{} is {}".format(wme.id, wme.attr, wme.value) for wme in token])))
+        production=lambda token: print("B", " and ".join(["{0.id}.{0.attr} is {0.value}".format(wme) for wme in token])))
 net.production(
         test("color", "==", "GREEN"),
         test("size", "==", "LARGE"),
         test("count", ">=", 2),
-        production=lambda token: print("C", " and ".join(["{}.{} is {}".format(wme.id, wme.attr, wme.value) for wme in token])))
+        production=lambda token: print("C", " and ".join(["{0.id}.{0.attr} is {0.value}".format(wme) for wme in token])))
 
 net.add_wme(wme("x", "color", "WHITE"))
 net.add_wme(wme("x", "size", "SMALL"))
-# net.add_wme(wme("x", "size", "LARGE"))
 net.add_wme(wme("y", "size", "LARGE"))
 net.add_wme(wme("y", "color", "GREEN"))
-net.retract_wme(wme("y", "size", "LARGE"))
 net.add_wme(wme("y", "size", "SMALL"))
+net.add_wme(wme("x", "count", 2))
 net.add_wme(wme("z", "color", "GREEN"))
 net.add_wme(wme("z", "size", "LARGE"))
-net.add_wme(wme("y", "color", "WHITE"))
+net.add_wme(wme("y", "size", "LARGE"))
+net.add_wme(wme("x", "color", "WHITE"))
 net.add_wme(wme("x", "count", 4))
 net.add_wme(wme("x", "count", 3))
 net.add_wme(wme("y", "count", 2))
