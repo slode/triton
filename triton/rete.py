@@ -202,7 +202,7 @@ class Rete:
                 continue
             for w in betamem.tokens[wme.id]:
                 if w == wme:
-                    betamem.tokens[wme.id].remove(w)
+                    del betamem.tokens[wme.id]
 
     def alpha_net(self):
         return self._alpha_root
@@ -252,7 +252,7 @@ net.production(
 
 net.add_wme(wme("x", "color", "WHITE"))
 net.add_wme(wme("x", "size", "SMALL"))
-net.add_wme(wme("x", "size", "LARGE"))
+# net.add_wme(wme("x", "size", "LARGE"))
 net.add_wme(wme("y", "size", "LARGE"))
 net.add_wme(wme("y", "color", "GREEN"))
 net.retract_wme(wme("y", "size", "LARGE"))
@@ -261,5 +261,6 @@ net.add_wme(wme("z", "color", "GREEN"))
 net.add_wme(wme("z", "size", "LARGE"))
 net.add_wme(wme("y", "color", "WHITE"))
 net.add_wme(wme("x", "count", 4))
+net.add_wme(wme("x", "count", 3))
 net.add_wme(wme("y", "count", 2))
 # print(json.dumps(net.alpha_net(), default=lambda o: o.__json__(), indent=2, sort_keys=True))
