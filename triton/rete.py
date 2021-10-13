@@ -39,8 +39,8 @@ class Node:
     def __json__(self):
         return {
             "name": self.name,
-            "parent": self.parent.name if self.parent is not None else None,
-            "children": [c for c in self.children]
+            "parent": self.parent #if self.parent is not None else None
+            # "children": [c.name for c in self.children]
         }
 
     def add_child(self, node):
@@ -79,7 +79,10 @@ class AlphaNode(Node):
         if self.test is not None:
             if not wme.attr == self.test.attr:
                 return
-            if not self.TEST_OPERATOR[self.test.operand](wme.value, self.test.target):
+
+            if isinstance(self.test.target, Var) and not isinstance(wme.value, Var):
+                wme.value = Var(self.test.target.identity, bound=wme.value)
+            elif not self.TEST_OPERATOR[self.test.operand](wme.value, self.test.target):
                 return
 
         for child in self.children:
@@ -120,22 +123,29 @@ class AlphaMemoryNode(Node):
 
 
 class BetaNode(Node):
-    def __init__(self, alpha_memory=None, **kwargs):
+    def __init__(self, alpha_memory=None, test=None, **kwargs):
         super().__init__(type="beta-node", **kwargs)
         assert alpha_memory is not None
 
+        self.test = test
         self.alpha_memory = alpha_memory
         alpha_memory.add_child(self)
 
     def join_test(self, token, wme):
-        for token_wme in token:
-            if token_wme.id != wme.id:
-                return False
-        return True
+        for twme in token:
+            if twme.id == wme.id:
+                return True
+
+            if isinstance(twme.value, Var) and twme.value.bound == wme.id:
+                return True
+
+            if isinstance(wme.value, Var) and wme.value.bound == twme.id:
+                return True
+        return False
 
     def __json__(self):
         doc = super().__json__()
-        doc.update({"alpha_memory": self.alpha_memory.name if self.alpha_memory is not None else None})
+        doc.update({"alpha_memory": self.alpha_memory if self.alpha_memory is not None else None})
         return doc
 
     def right_activation(self, wme):
@@ -143,10 +153,11 @@ class BetaNode(Node):
             for child in self.children:
                 child.left_activation([], wme)
         else:
-            if wme.id in self.parent.tokens:
-                token = self.parent.tokens[wme.id]
-                for child in self.children:
-                    child.left_activation(token, wme)
+            for token in self.parent.tokens.values():
+                if self.join_test(token, wme):
+                    for child in self.children:
+                        assert isinstance(child, (BetaMemoryNode, ProductionNode))
+                        child.left_activation(token, wme)
 
     def left_activation(self, token):
         for wme in list(self.alpha_memory.wmes.values()):
@@ -196,7 +207,6 @@ class ProductionNode(Node):
             "callback": str(self.callback.__code__.__str__()),
             "tokens": self.tokens
         })
-        doc.pop("children")
         return doc
 
     def retract_wme(self, wme):
@@ -221,6 +231,10 @@ class Rete:
             "prod_memory": self._prod_memory,
             "wmes": list(self._wmes)
         }
+
+    def dump(self):
+        import json
+        print(json.dumps(net, default=lambda x: x.__json__(), indent=4))
 
     def _add_retraction(self, wme, node):
         self._wmes.setdefault(((wme.id, wme.attr)), set()).add(node)
@@ -306,8 +320,97 @@ class Rete:
             prod()
         return self
 
-wme = namedtuple("RETE_WME", ["id", "attr", "value"])
-test = namedtuple("RETE_TEST", ["attr", "operand", "target"])
 
-def debug_production(net: Rete, token: [wme]):
-    print(", ".join(["{0.id}:{0.attr}={0.value}".format(wme) for wme in token]))
+class Fact:
+    def __init__(self, id, attr, value):
+        self.id = id
+        self.attr = attr
+        self.value = value
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __json__(self):
+        return self.__str__()
+
+    def __str__(self):
+        return "{}({}, {}, {})".format(self.__class__.__name__, self.id, self.attr, self.value)
+
+class Test:
+    def __init__(self, *args):
+        if len(args) == 3:
+            self.id, self.attr, self.target = args
+            self.operand = "=="
+        elif len(args) == 4:
+            self.id, self.attr, self.operand, self.target = args
+
+    def __eq__(self, other):
+        return (self.id == other.id
+                and self.attr == other.attr
+                and self.operand == other.operand
+                and self.target == other.target)
+
+    def __json__(self):
+        return self.__str__()
+
+    def __repr__(self):
+        return "{}({}, {}, {}, {})".format(self.__class__.__name__, self.id, self.attr, self.operand, self.target)
+
+    def __str__(self):
+        return "{}({}, {}, {}, {})".format(self.__class__.__name__, self.id, self.attr, self.operand, self.target)
+
+class Var:
+    def __init__(self, identity, bound=None):
+        self.identity = identity
+        self.bound = bound
+
+    def __repr__(self):
+        return "{}({}, {})".format(self.__class__.__name__, self.identity, self.bound)
+
+    def __str__(self):
+        return "Var(id={}, bound={})".format(self.identity, self.bound)
+    
+    def __eq__(self, other):
+        return self.bound == other.bound
+
+
+def debug_production(net: Rete, token: [Fact]):
+    print(", ".join(["{0.id} {0.attr} {0.value}".format(fact) for fact in token]))
+
+if __name__ == "__main__":
+
+    net = Rete()
+    net.production(
+            Test("author", "wrote", Var("book")),
+            Test("book", "is-written-by", Var("author")),
+            Test("author", "is-gender", "male"),
+            Test("book", "is-genre", "fantasy"),
+            production=debug_production)
+
+    net.production(
+            Test("author", "is", Var("author")),
+            Test("book", "is-written-by", Var("author")),
+            production=debug_production)
+
+    net.production(
+            Test("book", "is-written-by", Var("auth")),
+            Test("auth", "is-gender", "male"),
+            production=debug_production)
+
+    net.production(
+            Test("book", "is-written-by", Var("auth")),
+            Test("auth", "is-gender", "female"),
+            production=debug_production)
+
+
+    net.add_wme(Fact("Tolkien", "is-gender", "male"))
+    net.add_wme(Fact("The hobbit", "is-written-by", "Tolkien"))
+    net.add_wme(Fact("Harry Potter", "is-written-by", "Rowling"))
+    net.add_wme(Fact("Rowling", "is-gender", "female"))
+    net.add_wme(Fact("Rowling", "is", "Rowling"))
+    net.add_wme(Fact("The hobbit", "is-genre", "fantasy"))
+    net.add_wme(Fact("Harry Potter", "is-genre", "fantasy"))
+    net.add_wme(Fact("Rowling", "wrote", "Harry Potter"))
+    net.add_wme(Fact("Tolkien", "wrote", "The hobbit"))
+    net.fire()
+

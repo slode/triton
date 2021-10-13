@@ -18,33 +18,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
  
-from triton.rete import Rete, Test, Fact, debug_production
-
+from triton.rete import Rete, Test, Fact, Var, debug_production
 
 net = Rete()
 net.production(
-        Test("x", "color", "==", "WHITE"),
-        Test("x", "count", "<", 5),
-        production=debug_production)
-net.production(
-        Test("x", "count", "<", 3),
-        production=debug_production)
-net.production(
-        Test("x", "color", "==", "GREEN"),
-        Test("x", "size", "==", "LARGE"),
-        Test("x", "count", ">=", 2),
+        Test("x", "left-of", Var("y")),
+        Test("y", "color",  "red"),
         production=debug_production)
 
-net.add_wme(Fact("x", "color", "WHITE")).fire()
-net.add_wme(Fact("x", "size", "SMALL")).fire()
-net.add_wme(Fact("y", "size", "LARGE")).fire()
-net.add_wme(Fact("y", "color", "GREEN")).fire()
-net.add_wme(Fact("y", "size", "SMALL")).fire()
-net.add_wme(Fact("x", "count", 2)).fire()
-net.add_wme(Fact("z", "color", "GREEN")).fire()
-net.add_wme(Fact("z", "size", "LARGE")).fire()
-net.add_wme(Fact("y", "size", "LARGE")).fire()
-net.add_wme(Fact("x", "color", "WHITE")).fire()
-net.add_wme(Fact("x", "count", 4)).fire()
-net.add_wme(Fact("x", "count", 3)).fire()
-net.add_wme(Fact("y", "count", 2)).fire()
+net.add_wme(Fact("x", "left-of", "y"))
+net.add_wme(Fact("y", "color", "red"))
+net.fire()

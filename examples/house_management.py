@@ -18,18 +18,18 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
  
-from triton.rete import Rete, test, wme, debug_production
+from triton.rete import Rete, Test, Fact, debug_production
 
-def print_status(wme):
-    print("The {0.attr} in the {0.id} is {0.value}".format(wme))
+def print_status(fact):
+    print("The {0.attr} in the {0.id} is {0.value}".format(fact))
 
 def enable_heater(house, token):
     fact = next(filter(lambda x: x.attr=="temperature", token))
-    house.add_wme(wme(fact.id, "heater", True))
+    house.add_wme(Fact(fact.id, "heater", True))
 
 def disable_heater(house, token):
     fact = next(filter(lambda x: x.attr=="temperature", token))
-    house.add_wme(wme(fact.id, "heater", False))
+    house.add_wme(Fact(fact.id, "heater", False))
 
 def adjust_temperature(house, token):
     """Simulates natural temperature fluctuations with and without heater"""
@@ -37,34 +37,34 @@ def adjust_temperature(house, token):
     heater = next(filter(lambda x: x.attr=="heater", token))
     temp = next(filter(lambda x: x.attr=="temperature", token))
     new_temp = temp.value + 1 if heater.value else temp.value - 1
-    house.add_wme(wme(heater.id, "temperature", new_temp))
+    house.add_wme(Fact(heater.id, "temperature", new_temp))
 
 house_rules = Rete()
 house_rules.production(
-        test("temperature", "!=", None),
-        test("heater", "!=", None),
+        Test("room", "temperature", "!=", None),
+        Test("room", "heater", "!=", None),
         production=adjust_temperature)
 
 house_rules.production(
-        test("temperature", "<", 20),
-        test("heater", "!=", True),
+        Test("room", "temperature", "<", 20),
+        Test("room", "heater", "!=", True),
         production=enable_heater)
 
 house_rules.production(
-        test("temperature", ">", 25),
-        test("heater", "==", True),
+        Test("room", "temperature", ">", 25),
+        Test("room", "heater", "==", True),
         production=disable_heater)
 
 
 
-house_rules.add_wme(wme("kitchen", "heater", False))
-house_rules.add_wme(wme("kitchen", "temperature", 14))
+house_rules.add_wme(Fact("kitchen", "heater", False))
+house_rules.add_wme(Fact("kitchen", "temperature", 14))
 
-house_rules.add_wme(wme("bedroom", "heater", False))
-house_rules.add_wme(wme("bedroom", "temperature", 25))
+house_rules.add_wme(Fact("bedroom", "heater", False))
+house_rules.add_wme(Fact("bedroom", "temperature", 25))
 
-house_rules.add_wme(wme("tv-room", "heater", False))
-house_rules.add_wme(wme("tv-room", "temperature", 22))
+house_rules.add_wme(Fact("tv-room", "heater", False))
+house_rules.add_wme(Fact("tv-room", "temperature", 22))
 
 # example of network self-change
 for i in range(8):
