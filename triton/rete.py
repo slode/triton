@@ -49,8 +49,9 @@ class Node:
         return node
 
 
+import operator
 class AlphaNode(Node):
-    import operator
+
     TEST_OPERATOR = {
         "=": operator.eq,
         "==": operator.eq,
@@ -64,6 +65,7 @@ class AlphaNode(Node):
         "is": operator.is_,
         "nis": operator.is_not,
         "is not": operator.is_not,
+        "in": lambda a, b: operator.contains(b, a)
     }
 
     def __init__(self, test=None, **kwargs):
@@ -217,7 +219,7 @@ class ProductionNode(Node):
         token = token.copy()
         token.append(wme)
         self.net._add_retraction(wme, self)
-        self.tokens[wme.id] = lambda: self.callback(self.net, token)
+        self.tokens.setdefault(wme.id, []).append(lambda: self.callback(self.net, token))
 
 class Rete:
     def __init__(self):
@@ -313,9 +315,8 @@ class Rete:
         """
         fire_prod = []
         for node in self._prod_memory.values():
-            fire_prod.extend(node.tokens.values())
+            fire_prod += sum(node.tokens.values(), [])
             node.tokens.clear()
-
         for prod in fire_prod:
             prod()
         return self
@@ -409,7 +410,6 @@ if __name__ == "__main__":
     net.add_wme(Fact("Rowling", "is-gender", "female"))
     net.add_wme(Fact("Rowling", "is", "Rowling"))
     net.add_wme(Fact("The hobbit", "is-genre", "fantasy"))
-    net.add_wme(Fact("Harry Potter", "is-genre", "fantasy"))
     net.add_wme(Fact("Rowling", "wrote", "Harry Potter"))
     net.add_wme(Fact("Tolkien", "wrote", "The hobbit"))
     net.fire()
