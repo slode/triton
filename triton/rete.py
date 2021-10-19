@@ -39,8 +39,7 @@ class Node:
     def __json__(self):
         return {
             "name": self.name,
-            "parent": self.parent #if self.parent is not None else None
-            # "children": [c.name for c in self.children]
+            "parent": self.parent
         }
 
     def add_child(self, node):
@@ -112,7 +111,7 @@ class AlphaMemoryNode(Node):
 
     def __json__(self):
         doc = super().__json__()
-        doc.update({"wmes": self.wmes})
+        doc.update({"wmes": {str(k): v for k,v in self.wmes.items()}})
         return doc
 
     def retract_wme(self, wme):
@@ -182,7 +181,7 @@ class BetaMemoryNode(Node):
 
     def __json__(self):
         doc = super().__json__()
-        doc.update({"tokens": self.tokens})
+        doc.update({"tokens": {str(k): v for k,v in self.tokens.items()}})
         return doc
 
     def retract_wme(self, wme):
@@ -208,7 +207,7 @@ class ProductionNode(Node):
         doc = super().__json__()
         doc.update({
             "callback": str(self.callback.__code__.__str__()),
-            "tokens": self.tokens
+            "tokens": {str(k): v for k,v in self.tokens.items()}
         })
         return doc
 
@@ -237,7 +236,7 @@ class Rete:
 
     def dump(self):
         import json
-        print(json.dumps(net, default=lambda x: x.__json__(), indent=4))
+        print(json.dumps(net, indent=4, default=lambda x: x.__json__()))
 
     def _add_retraction(self, wme, node):
         self._wmes.setdefault(((wme.id, wme.attr)), set()).add(node)
@@ -345,7 +344,6 @@ class Cond:
             self.operand = "=="
         elif len(args) == 4:
             self.id, self.attr, self.operand, self.target = args
-        # self.id = self.id if isinstance(self.id, Var) else Var(self.id)
 
     def __eq__(self, other):
         return (self.id == other.id
@@ -367,6 +365,9 @@ class Var:
         self.identity = identity
         self.bound = bound
 
+    def __json__(self):
+        return self.__str__()
+
     def __hash__(self):
         return hash(self.identity) + hash(self.bound)
 
@@ -374,16 +375,12 @@ class Var:
         return "{}({}, {})".format(self.__class__.__name__, self.identity, self.bound)
 
     def __str__(self):
-        return self.bound #"Var(id={}, bound={})".format(self.identity, self.bound)
+        return "{}({}, {})".format(self.__class__.__name__, self.identity, self.bound)
     
-    def cmp(self, other):
+    def __eq__(self, other):
         if isinstance(other, Var):
             return self.bound == other.bound and self.identity == other.identity
         return self.bound == other
-
-    def __eq__(self, other):
-        c = self.cmp(other)
-        return c
 
 
 def debug_production(net: Rete, token: [Fact]):
@@ -424,4 +421,5 @@ if __name__ == "__main__":
     net.add_wme(Fact("Rowling", "wrote", "Harry Potter")).fire()
     net.add_wme(Fact("Tolkien", "wrote", "The hobbit")).fire()
     net.fire()
+    net.dump()
 
