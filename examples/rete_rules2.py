@@ -24,8 +24,9 @@ net = Rete()
 net.production(
         Test("x", "left-of", Var("y")),
         Test("y", "color",  "red"),
+        Test("x", "color",  "blue"),
         production=debug_production)
 
-net.add_wme(Fact("x", "left-of", "y"))
-net.add_wme(Fact("y", "color", "red"))
-net.fire()
+net.add_wme(Fact("helle", "left-of", "sigurd")).fire()
+net.add_wme(Fact("helle", "color", "blue")).fire()
+net.add_wme(Fact("sigurd", "color", "red")).fire()

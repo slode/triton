@@ -79,11 +79,14 @@ class AlphaNode(Node):
         if self.test is not None:
             if not wme.attr == self.test.attr:
                 return
-
             if isinstance(self.test.target, Var) and not isinstance(wme.value, Var):
                 wme.value = Var(self.test.target.identity, bound=wme.value)
             elif not self.TEST_OPERATOR[self.test.operand](wme.value, self.test.target):
                 return
+
+            if not isinstance(wme.id, Var):
+                wme.id = Var(self.test.id, bound=wme.id)
+
 
         for child in self.children:
             child.add_wme(wme)
@@ -133,13 +136,11 @@ class BetaNode(Node):
 
     def join_test(self, token, wme):
         for twme in token:
-            if twme.id == wme.id:
+            if twme.value == wme.id:
                 return True
-
-            if isinstance(twme.value, Var) and twme.value.bound == wme.id:
+            elif twme.id == wme.value:
                 return True
-
-            if isinstance(wme.value, Var) and wme.value.bound == twme.id:
+            elif twme.id == wme.id:
                 return True
         return False
 
@@ -343,6 +344,7 @@ class Test:
             self.operand = "=="
         elif len(args) == 4:
             self.id, self.attr, self.operand, self.target = args
+        # self.id = self.id if isinstance(self.id, Var) else Var(self.id)
 
     def __eq__(self, other):
         return (self.id == other.id
@@ -364,18 +366,27 @@ class Var:
         self.identity = identity
         self.bound = bound
 
+    def __hash__(self):
+        return hash(self.identity) + hash(self.bound)
+
     def __repr__(self):
         return "{}({}, {})".format(self.__class__.__name__, self.identity, self.bound)
 
     def __str__(self):
-        return "Var(id={}, bound={})".format(self.identity, self.bound)
+        return self.bound #"Var(id={}, bound={})".format(self.identity, self.bound)
     
+    def cmp(self, other):
+        if isinstance(other, str):
+            return self.bound == other
+        return self.bound == other.bound and self.identity == other.identity
+
     def __eq__(self, other):
-        return self.bound == other.bound
+        c = self.cmp(other)
+        return c
 
 
 def debug_production(net: Rete, token: [Fact]):
-    print(", ".join(["{0.id} {0.attr} {0.value}".format(fact) for fact in token]))
+    print("PROD:" + ", ".join(["{0.id}-{0.attr}-{0.value}".format(fact) for fact in token]))
 
 if __name__ == "__main__":
 
@@ -383,7 +394,6 @@ if __name__ == "__main__":
     net.production(
             Test("author", "wrote", Var("book")),
             Test("book", "is-written-by", Var("author")),
-            Test("author", "is-gender", "male"),
             Test("book", "is-genre", "fantasy"),
             production=debug_production)
 
@@ -403,14 +413,14 @@ if __name__ == "__main__":
             production=debug_production)
 
 
-    net.add_wme(Fact("Tolkien", "is-gender", "male"))
-    net.add_wme(Fact("The hobbit", "is-written-by", "Tolkien"))
-    net.add_wme(Fact("Harry Potter", "is-written-by", "Rowling"))
-    net.add_wme(Fact("Rowling", "is-gender", "female"))
-    net.add_wme(Fact("Rowling", "is", "Rowling"))
-    net.add_wme(Fact("The hobbit", "is-genre", "fantasy"))
-    net.add_wme(Fact("Harry Potter", "is-genre", "fantasy"))
-    net.add_wme(Fact("Rowling", "wrote", "Harry Potter"))
-    net.add_wme(Fact("Tolkien", "wrote", "The hobbit"))
+    net.add_wme(Fact("Tolkien", "is-gender", "male")).fire()
+    net.add_wme(Fact("The hobbit", "is-written-by", "Tolkien")).fire()
+    net.add_wme(Fact("Harry Potter", "is-written-by", "Rowling")).fire()
+    net.add_wme(Fact("Rowling", "is-gender", "female")).fire()
+    net.add_wme(Fact("Rowling", "is", "Rowling")).fire()
+    net.add_wme(Fact("The hobbit", "is-genre", "fantasy")).fire()
+    net.add_wme(Fact("Harry Potter", "is-genre", "fantasy")).fire()
+    net.add_wme(Fact("Rowling", "wrote", "Harry Potter")).fire()
+    net.add_wme(Fact("Tolkien", "wrote", "The hobbit")).fire()
     net.fire()
 
