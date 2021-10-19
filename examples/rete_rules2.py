@@ -21,12 +21,31 @@
 from triton.rete import Rete, Test, Fact, Var, debug_production
 
 net = Rete()
-net.production(
+p1 = net.production(
         Test("x", "left-of", Var("y")),
         Test("y", "color",  "red"),
         Test("x", "color",  "blue"),
         production=debug_production)
 
-net.add_wme(Fact("helle", "left-of", "sigurd")).fire()
-net.add_wme(Fact("helle", "color", "blue")).fire()
-net.add_wme(Fact("sigurd", "color", "red")).fire()
+p2 = net.production(
+        Test("x", "left-of", Var("y")),
+        Test("y", "color",  "blue"),
+        production=debug_production)
+
+p3 = net.production(
+        Test("x", "left-of", Var("y")),
+        Test("x", "color",  "orange"),
+        Test("y", "color",  "in", ("red", "blue")),
+        production=debug_production)
+
+net.add_wme(Fact("a", "left-of", "b"))
+net.add_wme(Fact("b", "color", "red"))
+net.add_wme(Fact("b", "color", "blue"))
+net.fire()
+print("...")
+net.add_wme(Fact("a", "color", "orange"))
+net.fire()
+print("...")
+net.add_wme(Fact("b", "color", "red"))
+net.fire()
+print("...")
