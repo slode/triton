@@ -18,21 +18,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
  
-from triton.rete import Rete, Test, Fact, debug_production
+from triton.rete import Rete, Cond, Fact, debug_production
 
 
 net = Rete()
 net.production(
-        Test("x", "color", "==", "WHITE"),
-        Test("x", "count", "<", 5),
+        Cond("x", "color", "==", "WHITE"),
+        Cond("x", "count", "<", 5),
         production=debug_production)
 net.production(
-        Test("x", "count", "<", 3),
+        Cond("x", "count", "<", 3),
         production=debug_production)
 net.production(
-        Test("x", "color", "==", "GREEN"),
-        Test("x", "size", "==", "LARGE"),
-        Test("x", "count", ">=", 2),
+        Cond("x", "color", "==", "GREEN"),
+        Cond("x", "size", "==", "LARGE"),
+        Cond("x", "count", ">=", 2),
         production=debug_production)
 
 net.add_wme(Fact("x", "color", "WHITE")).fire()

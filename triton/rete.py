@@ -338,7 +338,7 @@ class Fact:
     def __str__(self):
         return "{}({}, {}, {})".format(self.__class__.__name__, self.id, self.attr, self.value)
 
-class Test:
+class Cond:
     def __init__(self, *args):
         if len(args) == 3:
             self.id, self.attr, self.target = args
@@ -393,24 +393,24 @@ if __name__ == "__main__":
 
     net = Rete()
     net.production(
-            Test("author", "wrote", Var("book")),
-            Test("book", "is-written-by", Var("author")),
-            Test("book", "is-genre", "fantasy"),
+            Cond("author", "wrote", Var("book")),
+            Cond("book", "is-written-by", Var("author")),
+            Cond("book", "is-genre", "fantasy"),
             production=debug_production)
 
     net.production(
-            Test("author", "is", Var("author")),
-            Test("book", "is-written-by", Var("author")),
+            Cond("author", "is", Var("author")),
+            Cond("book", "is-written-by", Var("author")),
             production=debug_production)
 
     net.production(
-            Test("book", "is-written-by", Var("auth")),
-            Test("auth", "is-gender", "male"),
+            Cond("book", "is-written-by", Var("auth")),
+            Cond("auth", "is-gender", "male"),
             production=debug_production)
 
     net.production(
-            Test("book", "is-written-by", Var("auth")),
-            Test("auth", "is-gender", "female"),
+            Cond("book", "is-written-by", Var("auth")),
+            Cond("auth", "is-gender", "female"),
             production=debug_production)
 
 

@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
  
-from triton.rete import Rete, Test, Fact, debug_production
+from triton.rete import Rete, Cond, Fact, debug_production
 
 def print_status(fact):
     print("The {0.attr} in the {0.id} is {0.value}".format(fact))
@@ -41,18 +41,18 @@ def adjust_temperature(house, token):
 
 house_rules = Rete()
 house_rules.production(
-        Test("room", "temperature", "!=", None),
-        Test("room", "heater", "!=", None),
+        Cond("room", "temperature", "!=", None),
+        Cond("room", "heater", "!=", None),
         production=adjust_temperature)
 
 house_rules.production(
-        Test("room", "temperature", "<", 20),
-        Test("room", "heater", "!=", True),
+        Cond("room", "temperature", "<", 20),
+        Cond("room", "heater", "!=", True),
         production=enable_heater)
 
 house_rules.production(
-        Test("room", "temperature", ">", 25),
-        Test("room", "heater", "==", True),
+        Cond("room", "temperature", ">", 25),
+        Cond("room", "heater", "==", True),
         production=disable_heater)
 
 

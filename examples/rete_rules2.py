@@ -18,24 +18,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
  
-from triton.rete import Rete, Test, Fact, Var, debug_production
+from triton.rete import Rete, Cond, Fact, Var, debug_production
 
 net = Rete()
 p1 = net.production(
-        Test("x", "left-of", Var("y")),
-        Test("y", "color",  "red"),
-        Test("x", "color",  "blue"),
+        Cond("x", "left-of", Var("y")),
+        Cond("y", "color",  "red"),
+        Cond("x", "color",  "blue"),
         production=debug_production)
 
 p2 = net.production(
-        Test("x", "left-of", Var("y")),
-        Test("y", "color",  "blue"),
+        Cond("x", "left-of", Var("y")),
+        Cond("y", "color",  "blue"),
         production=debug_production)
 
 p3 = net.production(
-        Test("x", "left-of", Var("y")),
-        Test("x", "color",  "orange"),
-        Test("y", "color",  "in", ("red", "blue")),
+        Cond("x", "left-of", Var("y")),
+        Cond("x", "color",  "orange"),
+        Cond("y", "color",  "in", ("red", "blue")),
         production=debug_production)
 
 net.add_wme(Fact("a", "left-of", "b"))
