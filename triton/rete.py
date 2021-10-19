@@ -377,9 +377,9 @@ class Var:
         return self.bound #"Var(id={}, bound={})".format(self.identity, self.bound)
     
     def cmp(self, other):
-        if isinstance(other, str):
-            return self.bound == other
-        return self.bound == other.bound and self.identity == other.identity
+        if isinstance(other, Var):
+            return self.bound == other.bound and self.identity == other.identity
+        return self.bound == other
 
     def __eq__(self, other):
         c = self.cmp(other)
