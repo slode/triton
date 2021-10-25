@@ -103,3 +103,54 @@ def test_secondary_joined_cond():
     net.add_wme(Fact("c", "length", 3)).fire()
     assert callback.count() == 1
 
+def test_duplicated_rule_join():
+    callback = CalledProd()
+    net = Rete()
+    net.production(
+            Cond("x", "on-top-of", Var("y")),
+            Cond("y", "on-top-of", Var("z")),
+            Cond("z", "count", ">", 2),
+            production=callback)
+
+    net.add_wme(Fact("a", "on-top-of", "b")).fire()
+    net.add_wme(Fact("b", "on-top-of", "c")).fire()
+    net.add_wme(Fact("c", "count", 1)).fire()
+    assert callback.count() == 0
+
+    net.add_wme(Fact("c", "count", 3)).fire()
+    assert callback.count() == 1
+
+
+def test_duplicate_production():
+    callback = CalledProd()
+    net = Rete()
+    net.production(
+            Cond("z", "count", ">", 0),
+            production=callback)
+    net.production(
+            Cond("z", "count", ">", 0),
+            production=callback)
+
+    net.add_wme(Fact("c", "count", 3)).fire()
+    assert callback.count() == 2
+
+def test_duplicate_production():
+    def set_count_to_4(net, token):
+        net.add_wme(Fact("c", "count", 4))
+
+    callback = CalledProd()
+    net = Rete()
+    net.production(
+            Cond("z", "count", ">", 0),
+            production=callback)
+    net.production(
+            Cond("z", "count", ">", 0),
+            production=set_count_to_4)
+
+    net.add_wme(Fact("c", "count", 3)).fire().fire()
+    assert callback.count() == 2
+
+    # no check for duplicate values.
+    net.fire()
+    assert callback.count() == 3
+

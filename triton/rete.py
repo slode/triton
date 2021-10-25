@@ -80,6 +80,7 @@ class AlphaNode(Node):
         if self.test is not None:
             if not wme.attr == self.test.attr:
                 return
+            wme = Fact(wme.id, wme.attr, wme.value)
             if isinstance(self.test.target, Var) and not isinstance(wme.value, Var):
                 wme.value = Var(self.test.target.identity, bound=wme.value)
             elif not self.TEST_OPERATOR[self.test.operand](wme.value, self.test.target):
@@ -87,7 +88,6 @@ class AlphaNode(Node):
 
             if not isinstance(wme.id, Var):
                 wme.id = Var(self.test.id, bound=wme.id)
-
 
         for child in self.children:
             child.add_wme(wme)
@@ -137,10 +137,12 @@ class BetaNode(Node):
 
     def join_test(self, token, wme):
         for twme in token:
-            if twme.value == wme.id:
-                return True
-            elif twme.id == wme.value:
-                return True
+            if isinstance(twme.value, Var):
+                if twme.value == wme.id:
+                    return True
+            elif isinstance(wme.value, Var):
+                if twme.id == wme.value:
+                    return True
             elif twme.id == wme.id:
                 return True
         return False
@@ -206,7 +208,7 @@ class ProductionNode(Node):
     def __json__(self):
         doc = super().__json__()
         doc.update({
-            "callback": str(self.callback.__code__.__str__()),
+            "callback": str(self.callback),
             "tokens": {str(k): v for k,v in self.tokens.items()}
         })
         return doc
@@ -236,7 +238,7 @@ class Rete:
 
     def dump(self):
         import json
-        print(json.dumps(net, indent=4, default=lambda x: x.__json__()))
+        print(json.dumps(self, indent=4, default=lambda x: x.__json__()))
 
     def _add_retraction(self, wme, node):
         self._wmes.setdefault(((wme.id, wme.attr)), set()).add(node)
@@ -421,5 +423,5 @@ if __name__ == "__main__":
     net.add_wme(Fact("Rowling", "wrote", "Harry Potter")).fire()
     net.add_wme(Fact("Tolkien", "wrote", "The hobbit")).fire()
     net.fire()
-    net.dump()
+    # net.dump()
 
