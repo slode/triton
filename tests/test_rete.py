@@ -29,7 +29,6 @@ class CalledProd:
         self._times_called = 0
 
     def __call__(self, net, token):
-        print(net, token)
         self._times_called += 1
 
     def count(self):
@@ -134,7 +133,7 @@ def test_duplicate_production():
     net.add_wme(Fact("c", "count", 3)).fire()
     assert callback.count() == 2
 
-def test_duplicate_production():
+def test_self_referential_production():
     def set_count_to_4(net, token):
         net.add_wme(Fact("c", "count", 4))
 
@@ -147,10 +146,10 @@ def test_duplicate_production():
             Cond("z", "count", ">", 0),
             production=set_count_to_4)
 
-    net.add_wme(Fact("c", "count", 3)).fire().fire()
-    assert callback.count() == 2
+    net.add_wme(Fact("c", "count", 3)).fire()
+    assert callback.count() == 1
 
     # no check for duplicate values.
     net.fire()
-    assert callback.count() == 3
+    assert callback.count() == 2
 
