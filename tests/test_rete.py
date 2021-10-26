@@ -153,3 +153,48 @@ def test_self_referential_production():
     net.fire()
     assert callback.count() == 2
 
+
+def test2():
+    callback1 = CalledProd()
+    callback2 = CalledProd()
+    callback3 = CalledProd()
+    net = Rete()
+    net.production(
+            Cond("x", "color", "==", "WHITE"),
+            Cond("x", "count", "<", 5),
+            production=callback1)
+    net.production(
+            Cond("x", "count", "<", 3),
+            production=callback2)
+    net.production(
+            Cond("x", "color", "==", "GREEN"),
+            Cond("x", "size", "==", "LARGE"),
+            Cond("x", "count", ">=", 2),
+            production=callback3)
+
+    net.add_wme(Fact("a", "color", "WHITE")).fire()
+    net.add_wme(Fact("a", "size", "SMALL")).fire()
+    net.add_wme(Fact("b", "size", "LARGE")).fire()
+    net.add_wme(Fact("b", "color", "GREEN")).fire()
+    net.add_wme(Fact("b", "size", "SMALL")).fire()
+    assert callback1.count() == 0
+    assert callback2.count() == 0
+    assert callback3.count() == 0
+    net.add_wme(Fact("a", "count", 2)).fire()
+    assert callback1.count() == 1
+    assert callback2.count() == 1
+    net.add_wme(Fact("c", "color", "GREEN")).fire()
+    assert callback1.count() == 1
+    assert callback2.count() == 1
+    net.add_wme(Fact("c", "size", "LARGE")).fire()
+    assert callback1.count() == 1
+    net.add_wme(Fact("b", "size", "LARGE")).fire()
+    net.add_wme(Fact("a", "color", "WHITE")).fire()
+    assert callback1.count() == 2
+    net.add_wme(Fact("a", "count", 4)).fire()
+    assert callback1.count() == 3
+    net.add_wme(Fact("a", "count", 3)).fire()
+    assert callback1.count() == 4
+    net.add_wme(Fact("b", "count", 2)).fire()
+    assert callback2.count() == 2
+    assert callback3.count() == 1
