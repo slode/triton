@@ -379,16 +379,16 @@ class C(Cond):
         return Cond(self.id, self.attr, "in", target)
 
     def __le__(self, target):
-        return cond(self.id, self.attr, "<", target)
+        return Cond(self.id, self.attr, "<", target)
 
     def __lt__(self, target):
-        return cond(self.id, self.attr, "<=", target)
+        return Cond(self.id, self.attr, "<=", target)
 
     def __ge__(self, target):
-        return cond(self.id, self.attr, ">=", target)
+        return Cond(self.id, self.attr, ">=", target)
 
     def __gt__(self, target):
-        return cond(self.id, self.attr, ">", target)
+        return Cond(self.id, self.attr, ">", target)
 
     def __ne__(self, target):
         return Cond(self.id, self.attr, "!=", target)
