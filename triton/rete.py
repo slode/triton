@@ -18,9 +18,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from collections import namedtuple
-
-
 class Node:
     __symbol_counter = {}
     def gensym(self, prefix):
@@ -347,6 +344,10 @@ class Cond:
         elif len(args) == 4:
             self.id, self.attr, self.operand, self.target = args
 
+        assert self.id is not None
+        assert self.attr is not None
+        assert self.operand is not None
+
     def __eq__(self, other):
         return (self.id == other.id
                 and self.attr == other.attr
@@ -361,6 +362,40 @@ class Cond:
 
     def __str__(self):
         return "{}({}, {}, {}, {})".format(self.__class__.__name__, self.id, self.attr, self.operand, self.target)
+
+class C(Cond):
+    def __init__(self, id, operand="="):
+        self.id = id
+        self.attr = None
+
+    def __getattr__(self, attr):
+        self.attr = attr
+        return self
+    
+    def __call__(self, target):
+        return Cond(self.id, self.attr, "==", target)
+
+    def is_in(self, target):
+        return Cond(self.id, self.attr, "in", target)
+
+    def __le__(self, target):
+        return cond(self.id, self.attr, "<", target)
+
+    def __lt__(self, target):
+        return cond(self.id, self.attr, "<=", target)
+
+    def __ge__(self, target):
+        return cond(self.id, self.attr, ">=", target)
+
+    def __gt__(self, target):
+        return cond(self.id, self.attr, ">", target)
+
+    def __ne__(self, target):
+        return Cond(self.id, self.attr, "!=", target)
+
+    def __eq__(self, target):
+        return Cond(self.id, self.attr, "==", target)
+
 
 class Var:
     def __init__(self, identity, bound=None):
@@ -378,7 +413,7 @@ class Var:
 
     def __str__(self):
         return "{}({}, {})".format(self.__class__.__name__, self.identity, self.bound)
-    
+
     def __eq__(self, other):
         if isinstance(other, Var):
             return self.bound == other.bound and self.identity == other.identity
@@ -392,34 +427,34 @@ if __name__ == "__main__":
 
     net = Rete()
     net.production(
-            Cond("author", "wrote", Var("book")),
-            Cond("book", "is-written-by", Var("author")),
-            Cond("book", "is-genre", "fantasy"),
+            C("author").wrote(Var("book")),
+            C("book").is_written_by(Var("author")),
+            C("book").is_genre("fantasy"),
             production=debug_production)
 
     net.production(
-            Cond("author", "is", Var("author")),
-            Cond("book", "is-written-by", Var("author")),
+            C("author").self(Var("author")),
+            C("book").is_written_by(Var("author")),
             production=debug_production)
 
     net.production(
-            Cond("book", "is-written-by", Var("auth")),
-            Cond("auth", "is-gender", "male"),
+            C("book").is_written_by(Var("auth")),
+            C("auth").is_gender("male"),
             production=debug_production)
 
     net.production(
-            Cond("book", "is-written-by", Var("auth")),
-            Cond("auth", "is-gender", "female"),
+            C("book").is_written_by(Var("auth")),
+            C("auth").is_gender("female"),
             production=debug_production)
 
 
-    net.add_wme(Fact("Tolkien", "is-gender", "male")).fire()
-    net.add_wme(Fact("The hobbit", "is-written-by", "Tolkien")).fire()
-    net.add_wme(Fact("Harry Potter", "is-written-by", "Rowling")).fire()
-    net.add_wme(Fact("Rowling", "is-gender", "female")).fire()
+    net.add_wme(Fact("Tolkien", "is_gender", "male")).fire()
+    net.add_wme(Fact("The hobbit", "is_written_by", "Tolkien")).fire()
+    net.add_wme(Fact("Harry Potter", "is_written_by", "Rowling")).fire()
+    net.add_wme(Fact("Rowling", "is_gender", "female")).fire()
     net.add_wme(Fact("Rowling", "is", "Rowling")).fire()
-    net.add_wme(Fact("The hobbit", "is-genre", "fantasy")).fire()
-    net.add_wme(Fact("Harry Potter", "is-genre", "fantasy")).fire()
+    net.add_wme(Fact("The hobbit", "is_genre", "fantasy")).fire()
+    net.add_wme(Fact("Harry Potter", "is_genre", "fantasy")).fire()
     net.add_wme(Fact("Rowling", "wrote", "Harry Potter")).fire()
     net.add_wme(Fact("Tolkien", "wrote", "The hobbit")).fire()
     net.fire()
