@@ -1,0 +1,88 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "triton"
+version = "1.0.0"
+description = "triton is a 2D physics simulator."
+authors = [
+  "Stian Lode <stian.lode@gmail.com>",
+]
+license = "LicenseRef-Proprietary"
+readme = "README.md"
+classifiers = [
+  "Development Status :: 5 - Mature",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+]
+packages = [
+  { include = "triton", from = "src" },
+]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+pygame = "^2.5.2"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "*"
+coverage = "*"
+mypy = "*"
+pep8-naming = "*"
+pytest = "^7"
+pytest-asyncio = "*"
+pytest-black = "*"
+pytest-cov = "*"
+pytest-mypy = "*"
+types-PyYAML = "*"
+ipython = "*"
+devtools = "*"
+
+[tool.black]
+line-length = 100
+target-version = ['py310']
+
+[tool.pytest.ini_options]
+addopts = [
+  "--black",
+  "--mypy",
+  "--strict-markers",
+  "--disable-pytest-warnings",
+]
+python_files = ["test_*.py",]
+testpaths = ["src", "tests"]
+asyncio_mode = "auto"
+
+[tool.mypy]
+python_version = "3.10"
+plugins = []
+pretty = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_unused_configs = true
+show_traceback = true
+show_error_codes = true
+strict_optional = true
+strict_equality = true
+no_implicit_optional = true
+check_untyped_defs = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+warn_no_return = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+warn_no_return = false
+
+[tool.coverage.run]
+branch = true
+source = ["src", "tests"]
+omit = ["examples"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 100
