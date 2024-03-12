@@ -1,15 +1,15 @@
 # Copyright (c) 2013 Stian Lode
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -17,14 +17,18 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
- 
- 
+
+
 import math
 import random
 
+
 class Vector:
     def __init__(self, *args):
-        if hasattr(args[0], "__iter__", ):
+        if hasattr(
+            args[0],
+            "__iter__",
+        ):
             self._v = args[0][:]
         else:
             self._v = list(args)
@@ -57,14 +61,14 @@ class Vector:
             my_vect_a += my_vect_b
         """
         try:
-            if hasattr(other, '__getitem__'):
+            if hasattr(other, "__getitem__"):
                 if len(other) == len(self):
-                    for i,j in enumerate(self):
+                    for i, j in enumerate(self):
                         self[i] += other[i]
                 else:
                     raise TypeError("Length of vectors not the same.")
             else:
-                for i,j in enumerate(self):
+                for i, j in enumerate(self):
                     self[i] += other
         except:
             raise TypeError("Unable to add Vector objects %s and %s" % (repr(self), repr(other)))
@@ -108,9 +112,11 @@ class Vector:
         """
 
         try:
-            self += (other * -1)
+            self += other * -1
         except:
-            raise TypeError("Unable to subtract Vector objects %s and %s" % (repr(self), repr(other)))
+            raise TypeError(
+                "Unable to subtract Vector objects %s and %s" % (repr(self), repr(other))
+            )
         return self
 
     def __sub__(self, other):
@@ -150,17 +156,19 @@ class Vector:
         """
 
         try:
-            if hasattr(other, '__getitem__'):
-                if len(other ) == len(self):
-                    for i,j in enumerate(self):
+            if hasattr(other, "__getitem__"):
+                if len(other) == len(self):
+                    for i, j in enumerate(self):
                         self[i] *= other[i]
                 else:
                     raise TypeError("Length of vectors not the same.")
             else:
-                for i,j in enumerate(self):
+                for i, j in enumerate(self):
                     self[i] *= other
         except:
-            raise TypeError("Unable to multiply Vector objects %s and %s" % (repr(self), repr(other)))
+            raise TypeError(
+                "Unable to multiply Vector objects %s and %s" % (repr(self), repr(other))
+            )
         return self
 
     def __mul__(self, other):
@@ -210,19 +218,20 @@ class Vector:
         """
 
         try:
-            if hasattr(other, '__getitem__'):
-                if len(other ) == len(self):
-                    for i,j in enumerate(self):
+            if hasattr(other, "__getitem__"):
+                if len(other) == len(self):
+                    for i, j in enumerate(self):
                         self[i] /= other[i]
                 else:
                     raise TypeError("Length of vectors not the same.")
             else:
-                for i,j in enumerate(self):
+                for i, j in enumerate(self):
                     self[i] /= other
         except ZeroDivisionError:
             raise ZeroDivisionError(
-                "ZeroDivisionError when dividing Vector objects %s and %s" % (repr(self), repr(other))
-                )
+                "ZeroDivisionError when dividing Vector objects %s and %s"
+                % (repr(self), repr(other))
+            )
         except:
             raise TypeError("Unable to divide Vector objects %s and %s" % (repr(self), repr(other)))
         return self
@@ -253,19 +262,17 @@ class Vector:
         """
         vect = self.copy()
         try:
-            if hasattr(other, '__getitem__'):
-                if len(other ) == len(self):
-                    for i,j in enumerate(self):
+            if hasattr(other, "__getitem__"):
+                if len(other) == len(self):
+                    for i, j in enumerate(self):
                         vect[i] = other[i] / self[i]
                 else:
                     raise TypeError("Length of vectors not the same.")
             else:
-                for i,j in enumerate(self):
+                for i, j in enumerate(self):
                     vect[i] = other / self[i]
         except ZeroDivisionError:
-            raise ZeroDivisionError(
-                "ZeroDivisionError when divising " + str(other) + " by " + self
-                )
+            raise ZeroDivisionError("ZeroDivisionError when divising " + str(other) + " by " + self)
         except:
             raise TypeError("Unable to divide Vector objects %s and %s" % (repr(self), repr(other)))
         return vect
@@ -281,9 +288,9 @@ class Vector:
             my_vect_a == my_vect_b
         """
         if len(self) != len(other):
-            return False;
+            return False
 
-        for i,k in zip(self, other):
+        for i, k in zip(self, other):
             if i != k:
                 return False
 
@@ -314,7 +321,7 @@ class Vector:
         Usage:
             str(my_vect)
         """
-        return "[" + ', '.join(["%s" % i for i in self._v]) + "]"
+        return "[" + ", ".join(["%s" % i for i in self._v]) + "]"
 
     def __repr__(self):
         """Vector object string representation
@@ -365,7 +372,7 @@ class Vector:
         Usage:
             len = my_vector.length()
         """
-        return (self.length_sq())**0.5
+        return (self.length_sq()) ** 0.5
 
     def normalize(self):
         """Normalizes the Vector object
@@ -392,18 +399,19 @@ class Vector:
         vect.normalize()
         return vect
 
+
 def main():
-    a = Vector([5,7])
+    a = Vector([5, 7])
     b = Vector([1, -4])
     print(a, b)
-    a+=b
+    a += b
     print(a)
-    a*=-b
-    c = a*b-b+a*2-1
+    a *= -b
+    c = a * b - b + a * 2 - 1
     print(a)
     a *= a
     print(a)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

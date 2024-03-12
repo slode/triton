@@ -1,15 +1,15 @@
 # Copyright (c) 2013 Stian Lode
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -17,8 +17,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
- 
- 
+
+
 import math
 
 try:
@@ -44,13 +44,12 @@ def intersect_circle_line(cc, cr, l1, l2):
 
         t1 = (-b - disc) / (2 * a)
         t2 = (-b + disc) / (2 * a)
-        
+
         if 0 <= t1 <= 1:
             return True
         if 0 <= t2 <= 1:
             return True
     return False
-
 
 
 def bounding_box(polygon):
@@ -71,17 +70,18 @@ def bounding_box(polygon):
             y_max = p.y
     return (x_min, x_max, y_min, y_max)
 
+
 def point_outside_box(point, box):
-    if (box[0] > point.x or box[1] < point.x
-        or box[2] > point.y or box[3] < point.y):
+    if box[0] > point.x or box[1] < point.x or box[2] > point.y or box[3] < point.y:
         return True
     return False
+
 
 def min_distance_point_line(p, l1, l2):
     """Calculates shortest distance from a point p to a line given by the
     points l1 and l2.
     """
-    u_nom = ((p.x - l1.x) * (l2.x - l1.x) + (p.y - l1.y) * (l2.y - l1.y))
+    u_nom = (p.x - l1.x) * (l2.x - l1.x) + (p.y - l1.y) * (l2.y - l1.y)
     u_den = (l2 - l1).length_sq()
 
     if u_den == 0:
@@ -91,13 +91,14 @@ def min_distance_point_line(p, l1, l2):
 
     x = l1.x + u * (l2.x - l1.x)
     y = l1.y + u * (l2.y - l1.y)
-    
+
     closest_point = Vector2d(x, y)
     return (closest_point, u)
 
+
 def inside_polygon(p, polygon):
     counter = 0
-    length = len(polygon) 
+    length = len(polygon)
     p1 = polygon[0]
     for i in range(1, length):
         p2 = polygon[i % length]
@@ -112,6 +113,7 @@ def inside_polygon(p, polygon):
         return False
     return True
 
+
 def intersection_line_line(k1, k2, l1, l2):
     """Finds the intersection between two lines, each of which is given by two
     points"""
@@ -119,7 +121,7 @@ def intersection_line_line(k1, k2, l1, l2):
 
     ub_nom = (l2.x - l1.x) * (l1.y - k1.y) - (l2.y - l1.y) * (l1.x - k1.x)
 
-    u_den  = (k2.y - k1.y) * (l2.x - l1.x) - (k2.x - k1.x) * (l2.y - l1.y)
+    u_den = (k2.y - k1.y) * (l2.x - l1.x) - (k2.x - k1.x) * (l2.y - l1.y)
 
     # parallel lines.
     if u_den == 0.0:
@@ -130,14 +132,15 @@ def intersection_line_line(k1, k2, l1, l2):
 
     u1 = ua_nom / u_den
     u2 = ua_nom / u_den
-    
+
     x = l1.x + u1 * (l2.x - l1.x)
     y = l1.y + u1 * (l2.y - l1.y)
 
     intersection_point = Vector2d(x, y)
-    return (intersection_point, u1, u2) 
+    return (intersection_point, u1, u2)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import unittest
 
     class TestGeometry(unittest.TestCase):
@@ -146,11 +149,9 @@ if __name__ == '__main__':
             circle_radius = 10.0
             line_start = Vector2d(0.0, 0.0)
             line_end = Vector2d(50.0, 0.0)
-            xsect = intersect_circle_line(
-                circle_center, circle_radius, line_start, line_end)
+            xsect = intersect_circle_line(circle_center, circle_radius, line_start, line_end)
 
             self.assertTrue(xsect)
-
 
         def test_inside_polygon(self):
             polygon = []
@@ -214,6 +215,4 @@ if __name__ == '__main__':
             self.assertEqual(u1, 0.0)
             self.assertEqual(u2, 0.0)
 
-
     unittest.main()
-

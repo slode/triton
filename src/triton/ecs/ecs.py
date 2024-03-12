@@ -1,9 +1,10 @@
-
 class Event(object):
     pass
 
+
 class Component(object):
     pass
+
 
 class System(object):
     def __init__(self):
@@ -26,13 +27,14 @@ class System(object):
 
     def emit(self, einstance):
         self.registry._propagate_event(einstance)
-        
+
     def _process(self):
         event_queue = self.events
         self.events = []
         for etype, einst in event_queue:
             for listener in self.listeners[etype]:
                 listener(einst)
+
 
 class Registry:
     def __init__(self):
@@ -106,4 +108,3 @@ class Registry:
     def process(self):
         for system in self._systems:
             system._process()
-

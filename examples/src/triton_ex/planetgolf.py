@@ -7,7 +7,7 @@ import pygame as pg
 import pygame.gfxdraw
 import sys, os
 
-        
+
 class Planet(Sphere):
     mutable = True
     color = pg.Color("Yellow")
@@ -15,10 +15,11 @@ class Planet(Sphere):
     def calc_gravity(self, ent2):
         """Returns a force vector from one body to another"""
         gravitational_const = 2.0
-        diff = (ent2.pos-self.pos)
+        diff = ent2.pos - self.pos
         dist = diff.length_sq()
         force = gravitational_const * self._mass * ent2._mass / dist
         return diff.normalize() * force
+
 
 class SplashScreen(GameState):
     def __init__(self):
@@ -27,7 +28,7 @@ class SplashScreen(GameState):
         self.title_rect = self.title.get_rect(center=self.screen_rect.center)
         self.next_state = "GAMEPLAY"
         self.starfield = Starfield(self.screen_rect)
-        
+
     def get_event(self, event):
         if event.type == pg.QUIT:
             self.quit = True
@@ -36,14 +37,14 @@ class SplashScreen(GameState):
                 self.done = True
             elif event.key == pg.K_ESCAPE:
                 self.quit = True
-    
+
     def update(self, dt):
         self.starfield.update()
-        self.persist['level'] = os.path.join(os.path.dirname(__file__), "planets.txt")
+        self.persist["level"] = os.path.join(os.path.dirname(__file__), "planets.txt")
 
     def draw(self, surface):
         surface.fill(pg.Color("black"))
-        surface.blit(self.title, self.title_rect)        
+        surface.blit(self.title, self.title_rect)
         self.starfield.draw(surface)
 
 
@@ -52,7 +53,7 @@ class FinishScreen(GameState):
         super(FinishScreen, self).__init__()
         self.next_state = "GAMEPLAY"
         self.starfield = Starfield(self.screen_rect)
-        
+
     def get_event(self, event):
         if event.type == pg.QUIT:
             self.quit = True
@@ -62,29 +63,29 @@ class FinishScreen(GameState):
             elif event.key == pg.K_ESCAPE:
                 self.next_state = "SPLASH"
                 self.done = True
-    
+
     def startup(self, persistent):
         self.persist = {}
-        self.persist['level'] = persistent['level']
-        self.success = persistent['success']
-        self.score = float(persistent['score'])
+        self.persist["level"] = persistent["level"]
+        self.success = persistent["success"]
+        self.score = float(persistent["score"])
         self.rank = 0
         self.highscores = []
 
         if self.success and self.score > 0:
             try:
-                for line in open("highscore_" + self.persist['level'], "r+").readlines():
+                for line in open("highscore_" + self.persist["level"], "r+").readlines():
                     self.highscores.append(float(line))
             except:
                 pass
 
             import bisect
+
             self.rank = bisect.bisect_left(self.highscores, self.score)
             self.highscores.insert(self.rank, self.score)
-            with open("highscore_" + self.persist['level'], "w+") as f:
+            with open("highscore_" + self.persist["level"], "w+") as f:
                 for score in self.highscores:
                     f.write("{0}\n".format(score))
-
 
     def update(self, dt):
         self.starfield.update()
@@ -95,27 +96,30 @@ class FinishScreen(GameState):
 
         if self.success:
             title = self.font.render(
-                    "Success! You scored {0} points! [Rank {1}].".format(self.score, self.rank),
-                    True, pg.Color("dodgerblue"))
+                "Success! You scored {0} points! [Rank {1}].".format(self.score, self.rank),
+                True,
+                pg.Color("dodgerblue"),
+            )
             title_rect = title.get_rect(center=self.screen_rect.center)
             surface.blit(title, title_rect)
         else:
             title = self.font.render(
-                    "You failed! Press 'return' to restart.",
-                    True, pg.Color("dodgerblue"))
+                "You failed! Press 'return' to restart.", True, pg.Color("dodgerblue")
+            )
             title_rect = title.get_rect(center=self.screen_rect.center)
             surface.blit(title, title_rect)
-    
+
+
 class Gameplay(GameState):
     def __init__(self):
         super(Gameplay, self).__init__()
         self.initial_velocity = None
         self.next_state = "FINISHED"
-        
+
     def startup(self, persistent):
         self.persist = persistent
-        self.persist['success'] = False
-        self.persist['score'] = 0
+        self.persist["success"] = False
+        self.persist["score"] = 0
         self.entities = []
         self.started = False
         self.paused = False
@@ -124,23 +128,24 @@ class Gameplay(GameState):
         self.time = 0.0
 
         # Load level
-        for line in open(self.persist['level']).readlines():
-            mass, size, pos, vel, mutable, color  = line.split(":")
+        for line in open(self.persist["level"]).readlines():
+            mass, size, pos, vel, mutable, color = line.split(":")
             pos = pos.split(",")
             vel = vel.split(",")
-            mutable = mutable.startswith('1')
+            mutable = mutable.startswith("1")
 
             entity = Planet(
-                    float(size),
-                    mass=float(mass), 
-                    pos=Vector2d(float(pos[0]), float(pos[1])),
-                    vel=Vector2d(float(vel[0]), float(vel[1])),
-                    elasticity = 0.97,)
+                float(size),
+                mass=float(mass),
+                pos=Vector2d(float(pos[0]), float(pos[1])),
+                vel=Vector2d(float(vel[0]), float(vel[1])),
+                elasticity=0.97,
+            )
             entity.mutable = mutable
             c = map(int, color.split(","))
             entity.color = pg.Color(*c)
             self.entities.append(entity)
-        
+
     def get_event(self, event):
         if event.type == pg.QUIT:
             self.quit = True
@@ -151,7 +156,7 @@ class Gameplay(GameState):
                 self.paused = not self.paused
             elif event.key == pg.K_ESCAPE:
                 self.done = True
-        
+
     def update(self, dt):
         dt /= 100.0
         if not self.started:
@@ -163,9 +168,7 @@ class Gameplay(GameState):
                 self.show_cursor = True
                 diff /= 50
                 self.initial_velocity = diff
-                self.entities[0].vel = Vector2d(
-                        float(diff[0]),
-                        float(diff[1]))
+                self.entities[0].vel = Vector2d(float(diff[0]), float(diff[1]))
             else:
                 self.show_cursor = False
         elif not self.paused:
@@ -173,9 +176,9 @@ class Gameplay(GameState):
             entity_set = list(self.entities)
             # Success condition
             if self.entities[0].collides_with(self.entities[-1]):
-                self.persist['init_vel'] = self.initial_velocity
-                self.persist['success'] = True
-                self.persist['score'] = self.time
+                self.persist["init_vel"] = self.initial_velocity
+                self.persist["success"] = True
+                self.persist["score"] = self.time
                 self.done = True
                 return
 
@@ -201,27 +204,16 @@ class Gameplay(GameState):
         surface.fill(pg.Color("Black"))
         self.starfield.draw(screen)
         if not self.started and self.show_cursor:
-            pg.draw.aaline(
-                    surface,
-                    pg.Color("dodgerblue"),
-                    self.entities[0].pos,
-                    self.cursor)
+            pg.draw.aaline(surface, pg.Color("dodgerblue"), self.entities[0].pos, self.cursor)
 
         for entity in self.entities:
             pg.gfxdraw.aacircle(
-                surface,
-                int(entity.pos[0]),
-                int(entity.pos[1]),
-                int(entity.radius),
-                entity.color)
+                surface, int(entity.pos[0]), int(entity.pos[1]), int(entity.radius), entity.color
+            )
 
             pg.gfxdraw.filled_circle(
-                surface,
-                int(entity.pos[0]),
-                int(entity.pos[1]),
-                int(entity.radius),
-                entity.color)
-        
+                surface, int(entity.pos[0]), int(entity.pos[1]), int(entity.radius), entity.color
+            )
 
         label = self.font.render(str(self.initial_velocity), True, pg.Color("dodgerblue"))
         surface.blit(label, (10, 40))
@@ -240,14 +232,11 @@ class Gameplay(GameState):
             title_rect = title.get_rect(center=self.screen_rect.center)
             surface.blit(title, title_rect)
 
-    
+
 if __name__ == "__main__":
     pg.init()
     screen = pg.display.set_mode((1280, 720))
-    states = {
-            "SPLASH": SplashScreen(),
-            "GAMEPLAY": Gameplay(),
-            "FINISHED": FinishScreen()}
+    states = {"SPLASH": SplashScreen(), "GAMEPLAY": Gameplay(), "FINISHED": FinishScreen()}
     game = Game(screen, states, "SPLASH")
     game.run()
     pg.quit()

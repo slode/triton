@@ -1,15 +1,15 @@
 # Copyright (c) 2021 Stian Lode
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -18,8 +18,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+
 class Node:
     __symbol_counter = {}
+
     def gensym(self, prefix):
         Node.__symbol_counter.setdefault(prefix, 0)
         Node.__symbol_counter[prefix] += 1
@@ -34,10 +36,7 @@ class Node:
         self.children = set()
 
     def __json__(self):
-        return {
-            "name": self.name,
-            "parent": self.parent
-        }
+        return {"name": self.name, "parent": self.parent}
 
     def add_child(self, node):
         if node not in self.children:
@@ -46,6 +45,8 @@ class Node:
 
 
 import operator
+
+
 class AlphaNode(Node):
 
     TEST_OPERATOR = {
@@ -61,7 +62,7 @@ class AlphaNode(Node):
         "is": operator.is_,
         "nis": operator.is_not,
         "is not": operator.is_not,
-        "in": lambda a, b: operator.contains(b, a)
+        "in": lambda a, b: operator.contains(b, a),
     }
 
     def __init__(self, test=None, **kwargs):
@@ -101,6 +102,7 @@ class AlphaNode(Node):
                 return child
         return self.add_child(AlphaMemoryNode(net=self.net, parent=self))
 
+
 class AlphaMemoryNode(Node):
     def __init__(self, **kwargs):
         super().__init__(type="alpha-memory-node", **kwargs)
@@ -108,7 +110,7 @@ class AlphaMemoryNode(Node):
 
     def __json__(self):
         doc = super().__json__()
-        doc.update({"wmes": {str(k): v for k,v in self.wmes.items()}})
+        doc.update({"wmes": {str(k): v for k, v in self.wmes.items()}})
         return doc
 
     def retract_wme(self, wme):
@@ -173,6 +175,7 @@ class BetaNode(Node):
                 return child
         return self.add_child(BetaMemoryNode(net=self.net, parent=self))
 
+
 class BetaMemoryNode(Node):
     def __init__(self, **kwargs):
         super().__init__(type="beta-memory-node", **kwargs)
@@ -180,13 +183,13 @@ class BetaMemoryNode(Node):
 
     def __json__(self):
         doc = super().__json__()
-        doc.update({"tokens": {str(k): v for k,v in self.tokens.items()}})
+        doc.update({"tokens": {str(k): v for k, v in self.tokens.items()}})
         return doc
 
     def retract_wme(self, wme):
         if wme.id in self.tokens:
             self.tokens.pop(wme.id)
-        
+
     def left_activation(self, token, wme):
         token = token.copy()
         token.append(wme)
@@ -196,18 +199,18 @@ class BetaMemoryNode(Node):
             assert isinstance(child, BetaNode)
             child.left_activation(token)
 
+
 class ProductionNode(Node):
-    def __init__(self, callback=lambda x:x, **kwargs):
+    def __init__(self, callback=lambda x: x, **kwargs):
         super().__init__(type="production-node", **kwargs)
         self.callback = callback
         self.tokens = {}
 
     def __json__(self):
         doc = super().__json__()
-        doc.update({
-            "callback": str(self.callback),
-            "tokens": {str(k): v for k,v in self.tokens.items()}
-        })
+        doc.update(
+            {"callback": str(self.callback), "tokens": {str(k): v for k, v in self.tokens.items()}}
+        )
         return doc
 
     def retract_wme(self, wme):
@@ -220,6 +223,7 @@ class ProductionNode(Node):
         self.net._add_retraction(wme, self)
         self.tokens.setdefault(wme.id, []).append(lambda: self.callback(self.net, token))
 
+
 class Rete:
     def __init__(self):
         self._alpha_root = AlphaNode(None, net=self)
@@ -227,14 +231,11 @@ class Rete:
         self._wmes = {}
 
     def __json__(self):
-        return {
-            "_type": "rete-network",
-            "prod_memory": self._prod_memory,
-            "wmes": list(self._wmes)
-        }
+        return {"_type": "rete-network", "prod_memory": self._prod_memory, "wmes": list(self._wmes)}
 
     def dump(self):
         import json
+
         print(json.dumps(self, indent=4, default=lambda x: x.__json__()))
 
     def _add_retraction(self, wme, node):
@@ -242,7 +243,7 @@ class Rete:
 
     def _create_beta_node(self, parent=None, alpha_memory=None, production=None):
         for c in alpha_memory.children:
-            if isinstance(c, BetaNode) and c.parent==parent:
+            if isinstance(c, BetaNode) and c.parent == parent:
                 bnode = c
                 break
         else:
@@ -266,7 +267,7 @@ class Rete:
 
         Args:
             wme: a WME instance on the form: wme("id", "attr", "value")
-        
+
         Returns:
             a reference to the rete network
         """
@@ -278,7 +279,7 @@ class Rete:
         """Retract a WME from the network
 
         Retracting a WME from the system will remove the WME from all memory nodes
-        
+
         Returns:
             a reference to the rete network
         """
@@ -303,12 +304,13 @@ class Rete:
             bmemory = self._create_beta_node(
                 parent=bmemory,
                 alpha_memory=amemory,
-                production=production if test == conds[-1] else None)
+                production=production if test == conds[-1] else None,
+            )
         return self
-    
+
     def fire(self):
         """Runs all actions associated with triggered productions
-        
+
         Returns:
             a reference to the rete network
         """
@@ -336,6 +338,7 @@ class Fact:
     def __str__(self):
         return "{}({}, {}, {})".format(self.__class__.__name__, self.id, self.attr, self.value)
 
+
 class Cond:
     def __init__(self, *args):
         if len(args) == 3:
@@ -349,19 +352,26 @@ class Cond:
         assert self.operand is not None
 
     def __eq__(self, other):
-        return (self.id == other.id
-                and self.attr == other.attr
-                and self.operand == other.operand
-                and self.target == other.target)
+        return (
+            self.id == other.id
+            and self.attr == other.attr
+            and self.operand == other.operand
+            and self.target == other.target
+        )
 
     def __json__(self):
         return self.__str__()
 
     def __repr__(self):
-        return "{}({}, {}, {}, {})".format(self.__class__.__name__, self.id, self.attr, self.operand, self.target)
+        return "{}({}, {}, {}, {})".format(
+            self.__class__.__name__, self.id, self.attr, self.operand, self.target
+        )
 
     def __str__(self):
-        return "{}({}, {}, {}, {})".format(self.__class__.__name__, self.id, self.attr, self.operand, self.target)
+        return "{}({}, {}, {}, {})".format(
+            self.__class__.__name__, self.id, self.attr, self.operand, self.target
+        )
+
 
 class C(Cond):
     def __init__(self, id, operand="="):
@@ -371,7 +381,7 @@ class C(Cond):
     def __getattr__(self, attr):
         self.attr = attr
         return self
-    
+
     def __call__(self, target):
         return Cond(self.id, self.attr, "==", target)
 
@@ -423,30 +433,34 @@ class Var:
 def debug_production(net: Rete, token: [Fact]):
     print("PROD:" + ", ".join(["{0.id}-{0.attr}-{0.value}".format(fact) for fact in token]))
 
+
 if __name__ == "__main__":
 
     net = Rete()
     net.production(
-            C("author").wrote(Var("book")),
-            C("book").is_written_by(Var("author")),
-            C("book").is_genre("fantasy"),
-            production=debug_production)
+        C("author").wrote(Var("book")),
+        C("book").is_written_by(Var("author")),
+        C("book").is_genre("fantasy"),
+        production=debug_production,
+    )
 
     net.production(
-            C("author").self(Var("author")),
-            C("book").is_written_by(Var("author")),
-            production=debug_production)
+        C("author").self(Var("author")),
+        C("book").is_written_by(Var("author")),
+        production=debug_production,
+    )
 
     net.production(
-            C("book").is_written_by(Var("auth")),
-            C("auth").is_gender("male"),
-            production=debug_production)
+        C("book").is_written_by(Var("auth")),
+        C("auth").is_gender("male"),
+        production=debug_production,
+    )
 
     net.production(
-            C("book").is_written_by(Var("auth")),
-            C("auth").is_gender("female"),
-            production=debug_production)
-
+        C("book").is_written_by(Var("auth")),
+        C("auth").is_gender("female"),
+        production=debug_production,
+    )
 
     net.add_wme(Fact("Tolkien", "is_gender", "male")).fire()
     net.add_wme(Fact("The hobbit", "is_written_by", "Tolkien")).fire()
@@ -459,4 +473,3 @@ if __name__ == "__main__":
     net.add_wme(Fact("Tolkien", "wrote", "The hobbit")).fire()
     net.fire()
     # net.dump()
-

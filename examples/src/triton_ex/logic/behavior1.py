@@ -2,6 +2,7 @@ from triton.behavior.behavior_tree import *
 
 from random import random
 
+
 class MoveToDestination(Node):
     def start(self, bb):
         bb.setdefault("distance", 5)
@@ -15,6 +16,7 @@ class MoveToDestination(Node):
             print("Reached destination")
             return Status.Success
 
+
 class SearchForTarget(Node):
     def update(self, bb):
         if random() > 0.8:
@@ -23,6 +25,7 @@ class SearchForTarget(Node):
         else:
             print("Target not found")
             return Status.Failed
+
 
 class AttackTarget(Node):
     def update(self, bb):
@@ -33,6 +36,7 @@ class AttackTarget(Node):
             print("Attacking target")
             return Status.Running
 
+
 class TestHealth(Node):
     def update(self, bb):
         if random() > 0.5:
@@ -40,6 +44,7 @@ class TestHealth(Node):
             return Status.Failed
         else:
             return Status.Running
+
 
 class HasItem(Node):
     def update(self, bb):
@@ -50,21 +55,24 @@ class HasItem(Node):
         print("Has healing")
         return Status.Failed
 
+
 class DrinkHealing(Node):
     def update(self, bb):
         print("Healed")
         return Status.Success
 
+
 if __name__ == "__main__":
     p = Parallel()
     p.add(
         Selector(children=[TestHealth(), HasItem(), DrinkHealing()]),
-        Sequence(children=[SearchForTarget(), MoveToDestination(), AttackTarget()]))
+        Sequence(children=[SearchForTarget(), MoveToDestination(), AttackTarget()]),
+    )
 
     bb = {}
     print("TICK")
     from time import sleep
+
     while p.tick(bb) != Status.Success:
         continue
         sleep(0.5)
-        

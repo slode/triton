@@ -1,0 +1,20 @@
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry]
+name = "triton-examples"
+version = "1.0.0"
+description = "triton is a 2D physics simulator."
+authors = [
+  "Stian Lode <stian.lode@gmail.com>",
+]
+license = "MIT"
+classifiers = []
+packages = [
+  { include = "triton_ex", from = "src" },
+]
+
+[tool.poetry.dependencies]
+python = ">=3.10,<4.0"
+triton = {path = ".."}

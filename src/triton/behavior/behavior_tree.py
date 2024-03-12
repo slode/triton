@@ -1,9 +1,11 @@
 from uuid import uuid4
 
+
 class Status:
-    Success="success"
-    Running="running"
-    Failed="failed"
+    Success = "success"
+    Running = "running"
+    Failed = "failed"
+
 
 class Node(object):
     def __init__(self, name=None, **kwargs):
@@ -17,12 +19,12 @@ class Node(object):
 
         if node_status != Status.Running:
             self.start(user_data)
-        
+
         node_status = self.update(user_data)
 
         if node_status != Status.Running:
             self.end(user_data)
-        
+
         node_data["status"] = node_status
         return node_status
 
@@ -47,15 +49,17 @@ class Composite(Node):
     def add(self, *nodes):
         self.children.extend(nodes)
 
+
 class Sequence(Composite):
     """Runs each child in sequence until failure"""
+
     def start(self, bb):
         bb["index"] = 0
 
     def update(self, bb):
         status = Status.Success
-        
-        for c in self.children[bb["index"]:]:
+
+        for c in self.children[bb["index"] :]:
             status = c.tick(bb)
 
             if status == Status.Success:
@@ -65,15 +69,17 @@ class Sequence(Composite):
 
         return status
 
+
 class Selector(Composite):
     """Runs each child in sequence until success"""
+
     def start(self, bb):
         bb["index"] = 0
 
     def update(self, bb):
         status = Status.Success
-        
-        for c in self.children[bb["index"]:]:
+
+        for c in self.children[bb["index"] :]:
             status = c.tick(bb)
 
             if status == Status.Failed:
@@ -83,8 +89,10 @@ class Selector(Composite):
 
         return status
 
+
 class Parallel(Composite):
     """Runs all children until failure."""
+
     def start(self, bb):
         bb["running"] = set(c.uuid for c in self.children)
 
@@ -93,7 +101,7 @@ class Parallel(Composite):
 
         if not bb["running"]:
             return Status.Success
-        
+
         for c in self.children:
             if c.uuid not in bb["running"]:
                 continue
@@ -107,6 +115,7 @@ class Parallel(Composite):
 
         return overall_status
 
+
 class Repeater(Composite):
     def __init__(self, *args, **kwargs):
         super(Repeater, self).__init__(*args, **kwargs)
@@ -118,6 +127,7 @@ class Repeater(Composite):
 
         return Status.Running
 
+
 if __name__ == "__main__":
     from time import sleep
 
@@ -128,15 +138,16 @@ if __name__ == "__main__":
     class Failer(Node):
         def update(self, bb):
             return Status.Failed
+
     s1 = Selector(name="s1")
     s1.add(Failer())
     s1.add(Failer())
     s1.add(Succeeder())
-    
+
     s2 = Sequence(name="s2")
     s2.add(Succeeder())
     s2.add(Succeeder())
-    
+
     s3 = Sequence()
     s3.add(s1)
     s3.add(s2)
@@ -148,6 +159,3 @@ if __name__ == "__main__":
             print(status)
             break
         sleep(1)
-
-
-

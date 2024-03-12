@@ -1,4 +1,3 @@
-
 class Action:
     preconditions = {}
     effects = {}
@@ -30,6 +29,7 @@ class Action:
     def __repr__(self):
         return self.__class__.__name__
 
+
 class Goal:
     def __init__(self, conditions):
         self.conditions = conditions
@@ -41,7 +41,7 @@ class Goal:
         return self.repr()
 
     def __repr__(self):
-        return "Goal: "+ str(self.conditions)
+        return "Goal: " + str(self.conditions)
 
 
 class Agent:
@@ -68,12 +68,14 @@ class Agent:
 
     def verify_goals(self):
         for g in self.goals:
-            if (set(g.get_conditions().items()) <= set(self.state.items())):
+            if set(g.get_conditions().items()) <= set(self.state.items()):
                 self.goals.remove(g)
         return len(self.goals) == 0
 
+
 def debug(msg):
     print(msg)
+
 
 def goal_planner(agent):
 
@@ -90,10 +92,8 @@ def goal_planner(agent):
                 new_state.update(action.effects)
 
                 total_cost = validate_actions(
-                        new_state,
-                        actions - set([action]),
-                        goal_conditions,
-                        cost + action.cost)
+                    new_state, actions - set([action]), goal_conditions, cost + action.cost
+                )
 
                 if total_cost is not None:
                     total_cost.append(action)
@@ -130,13 +130,14 @@ def goal_planner(agent):
     except:
         return False
 
+
 if __name__ == "__main__":
 
     class StealOre(Action):
-        preconditions = {"hasOre": False }
+        preconditions = {"hasOre": False}
         effects = {"hasOre": True, "hasFun": False}
         cost = 10.0
-        
+
         def perform(self, agent):
             agent.state["gold"] += 4
 
@@ -154,9 +155,9 @@ if __name__ == "__main__":
     class SellOre(Action):
         preconditions = {"hasOre": True}
         effects = {"hasOre": False, "needMoney": False}
+
         def perform(self, agent):
             agent.state["gold"] += 4
-
 
     class Drink(Action):
         preconditions = {"needMoney": False}
@@ -197,10 +198,10 @@ if __name__ == "__main__":
             self.actions.append(Brawl)
 
     gimli = Dwarf()
-#    gimli.set_goal(Goal({"hasTool": True}))
+    #    gimli.set_goal(Goal({"hasTool": True}))
     gimli.set_goal(Goal({"needMoney": False}))
-#    gimli.set_goal(Goal({"hasFun": True}))
-#    gimli.set_goal(Goal({"hasOre": True}))
+    #    gimli.set_goal(Goal({"hasFun": True}))
+    #    gimli.set_goal(Goal({"hasOre": True}))
 
     while True:
         if gimli.verify_goals():

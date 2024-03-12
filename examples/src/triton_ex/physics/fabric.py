@@ -7,10 +7,10 @@ from triton.spring_damper_link import SpringDamperLink
 
 from common.cursor import Cursor
 
+
 class Link(SpringDamperLink):
-    def __init__(self, rb1, rb2, damping=.3, spring=0.7, length=50):
-        super(Link, self).__init__(
-            rb1, rb2, damping=damping, spring=spring, length=length)
+    def __init__(self, rb1, rb2, damping=0.3, spring=0.7, length=50):
+        super(Link, self).__init__(rb1, rb2, damping=damping, spring=spring, length=length)
 
     def resolve(self):
         x = self._rb1.pos - self._rb2.pos
@@ -24,14 +24,17 @@ class Link(SpringDamperLink):
 
     def draw(self, screen):
         x = self._rb1.pos - self._rb2.pos
-        d = x.length()/self._length
+        d = x.length() / self._length
         if 0.9 < d < 1.1:
-            pygame.draw.aaline(screen, (150,250,150), self._rb1.pos.tuple(), self._rb2.pos.tuple())
+            pygame.draw.aaline(
+                screen, (150, 250, 150), self._rb1.pos.tuple(), self._rb2.pos.tuple()
+            )
         else:
-            pygame.draw.aaline(screen, (250,150,150), self._rb1.pos.tuple(), self._rb2.pos.tuple())
+            pygame.draw.aaline(
+                screen, (250, 150, 150), self._rb1.pos.tuple(), self._rb2.pos.tuple()
+            )
 
 
-        
 def main():
     spheres = []
     sphere_col = []
@@ -40,48 +43,43 @@ def main():
 
     width = 10
     length = 10
-    for y in range(1, length+1):
-        for x in range(1, width+1):
-            pos = Vector2d(float(100.0*x), float(100.0 + -x*20.0+20.0*y))
+    for y in range(1, length + 1):
+        for x in range(1, width + 1):
+            pos = Vector2d(float(100.0 * x), float(100.0 + -x * 20.0 + 20.0 * y))
             vel = Vector2d(40.0, 0.0)
-            sphere = Sphere(
-                mass = 0.1,
-                radius = 1.0,
-                pos = pos,
-                vel = vel,
-                damping = 0.1,
-                elasticity = 0.97
-                )
+            sphere = Sphere(mass=0.1, radius=1.0, pos=pos, vel=vel, damping=0.1, elasticity=0.97)
 
             spheres.append(sphere)
-            sphere_col.append((int(sphere.x)%255,int(sphere.y)%255,int(sphere.radius)*255%255))
+            sphere_col.append(
+                (int(sphere.x) % 255, int(sphere.y) % 255, int(sphere.radius) * 255 % 255)
+            )
 
-    sphere_col.append((int(sphere.x)%255,int(sphere.y)%255,int(sphere.radius)*255%255))
+    sphere_col.append((int(sphere.x) % 255, int(sphere.y) % 255, int(sphere.radius) * 255 % 255))
     links = []
     for i, sphere in enumerate(spheres):
         try:
-            down = spheres[i+width]
+            down = spheres[i + width]
             links.append(Link(sphere, down, length=100.0))
         except:
             pass
 
         try:
             if i % width > 0:
-                downright = spheres[i+width-1]
+                downright = spheres[i + width - 1]
                 links.append(Link(sphere, downright, length=140.0))
         except:
             pass
 
         try:
-            if (i+1) % width != 0:
-                left = spheres[i+1]
+            if (i + 1) % width != 0:
+                left = spheres[i + 1]
                 links.append(Link(sphere, left, length=100.0))
         except:
             pass
 
         try:
-            if (i+1) % width != 0:
-                downleft = spheres[i+width+1]
+            if (i + 1) % width != 0:
+                downleft = spheres[i + width + 1]
                 links.append(Link(sphere, downleft, length=140.0))
         except:
             pass
@@ -117,20 +115,18 @@ def main():
                 if cursor.collides_with(neighbour):
                     cursor.resolve_collision(neighbour)
 
-
         for sphere in spheres:
             sphere.apply_force_to_com(sphere.mass * downward)
 
         for link in links:
             link.resolve()
 
-        screen.fill((255,245,225))
+        screen.fill((255, 245, 225))
         for link in links:
             link.draw(screen)
 
         for n, sphere in enumerate(spheres):
-            pygame.draw.circle(
-                    screen, sphere_col[n], sphere.pos.tuple(), int(sphere.radius), 0)
+            pygame.draw.circle(screen, sphere_col[n], sphere.pos.tuple(), int(sphere.radius), 0)
 
         for sphere in spheres[width:]:
             sphere.update(t, dt)
@@ -139,5 +135,5 @@ def main():
         t += dt
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

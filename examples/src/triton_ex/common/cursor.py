@@ -1,5 +1,6 @@
 from triton.sphere import Sphere
 
+
 class Cursor(Sphere):
 
     def __init__(self, **args):

@@ -1,15 +1,15 @@
 # Copyright (c) 2013 Stian Lode
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -17,10 +17,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
- 
- 
+
+
 import math
 from triton.vector import Vector
+
 
 class Vector3d(Vector):
     @property
@@ -72,9 +73,13 @@ class Vector3d(Vector):
             new_vect = my_vect.perp()
         """
         return Vector3d(
-            [self.y * other.z - other.y * self.z,
-            self.z * other.x - other.z * self.x,
-            self.x * other.y - other.x * self.y])
+            [
+                self.y * other.z - other.y * self.z,
+                self.z * other.x - other.z * self.x,
+                self.x * other.y - other.x * self.y,
+            ]
+        )
+
 
 def main():
     a = Vector3d([5, 5, 0])
@@ -84,12 +89,14 @@ def main():
     print(c)
     import matplotlib.pyplot as plt
     from mpl_toolkits.mplot3d import Axes3D
+
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
+    ax = fig.add_subplot(111, projection="3d")
     ax.plot([0, a.x], [0, a.y], zs=[0, a.z])
     ax.plot([0, b.x], [0, b.y], zs=[0, b.z])
     ax.plot([0, c.x], [0, c.y], zs=[0, c.z])
     plt.show()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

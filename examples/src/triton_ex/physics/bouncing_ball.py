@@ -19,52 +19,49 @@
 # THE SOFTWARE.
 
 
+import random
 from triton.vector2d import Vector2d
 from triton.sphere import Sphere
-from triton.ecs.ecs import Registry, Event
+from triton.spring_damper_link import SpringDamperLink
+from triton.ecs import Registry
 
-from components import *
-from systems import *
+from triton_ex.common.systems import (
+    InputSystem,
+    GravitationalSystem,
+    ScreenBounceSystem,
+    SimulationSystem,
+    RenderSystem,
+    GameLoopSystem,
+)
+from triton_ex.common.components import RigidBody, Drawable, Movable, Link
 
-import random
 
 def main():
     regs = Registry()
 
-    for i in range(10):
-        m = float(random.randrange(10.0, 20.0))
+    for i in range(15):
         sphere = Sphere(
-            mass = m/10.0,
-            radius = int(m),
-            pos = Vector2d(random.randrange(800.0),
-                           random.randrange(800.0)),
-            damping = 0.30,
-            elasticity = 0.90
-            )
-        regs.add_entity(
-                RigidBody(sphere),
+            mass=1.0,
+            radius=4.0,
+            pos=Vector2d(random.random() * 100.0, random.random() * 100.0),
+            vel=Vector2d(20.0, 0.0),
+            damping=0.0,
+            elasticity=0.97,
+        )
+        regs.add_entity(RigidBody(sphere), Drawable(), Movable())
+
+    for e1, [r1] in regs.get_components(RigidBody):
+        for e2, [r2] in regs.get_components(RigidBody):
+            if e1 == e2:
+                continue
+            regs.add_entity(
+                Link(SpringDamperLink(r1.sphere, r2.sphere, damping=0.1, spring=1.0, length=100.0)),
                 Drawable(),
-                Movable(),
-                Seeking(target=4))
-#,
-#                Evading(target=3))
-#                Wandering())
-
-    regs.add_component(4, Wandering())
-    regs.add_component(3, Wandering())
-    regs.remove_component(4, Seeking())
-    regs.remove_component(3, Seeking())
-#    regs.remove_component(4, Evading())
-#    regs.remove_component(3, Evading())
-
-    regs.add_entity(
-            Centroid(),
-            Drawable())
+            )
 
     regs.add_system(InputSystem())
-    regs.add_system(CollisionCheckSystem())
-    regs.add_system(CollisionSystem())
-    regs.add_system(ForceSystem())
+    regs.add_system(GravitationalSystem())
+    regs.add_system(ScreenBounceSystem())
     regs.add_system(SimulationSystem())
     regs.add_system(RenderSystem())
     regs.add_system(GameLoopSystem())
@@ -72,5 +69,6 @@ def main():
     while True:
         regs.process()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
