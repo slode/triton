@@ -19,127 +19,54 @@
 # THE SOFTWARE.
 
 
-import pygame
-import random, math
+import random
 from triton.vector2d import Vector2d
 from triton.sphere import Sphere
-from triton.spatial_hash import SpatialHash
 from triton.spring_damper_link import SpringDamperLink
+from triton.ecs import Registry
 
-
-class AtomicForceLink(object):
-    """A link between two rigid bodies.
-
-    The link applies the classical spring-damper second degree differential
-    equation to the link.
-    """
-
-    def __init__(self, rb1, rb2, damping=0.3, spring=3.0, length=50):
-        self._rb1 = rb1
-        self._rb2 = rb2
-        self._damping = damping
-        self._spring = spring
-        self._length = length
-        self._f = 0
-
-    def resolve(self):
-        x = self._rb1.pos - self._rb2.pos
-        dx = self._rb1.vel - self._rb2.vel
-        if x.length() == 0.0:
-            return
-        n = x.unit_vector()
-        fa = self._spring / x.length() ** 2
-        fr = -self._damping / x.length()
-        self._f = fa + fr
-        self._f *= 0.99
-
-        self._rb1.apply_force_to_com(n * self._f)
-        self._rb2.apply_force_to_com(n * -self._f)
-
-
-class Link(AtomicForceLink):
-    def __init__(self, rb1, rb2, damping=20.3, spring=30.0, length=100):
-        super(Link, self).__init__(rb1, rb2, damping=damping, spring=spring, length=length)
-
-    def draw(self, screen):
-        if abs(self._f) < 0.1:
-            pygame.draw.aaline(
-                screen, (150, 250, 150), self._rb1.pos.tuple(), self._rb2.pos.tuple()
-            )
-        else:
-            pygame.draw.aaline(
-                screen, (250, 150, 150), self._rb1.pos.tuple(), self._rb2.pos.tuple()
-            )
-
-
-def update_links(spheres):
-    links = []
-    for me in range(len(spheres)):
-        for neigh in range(me, len(spheres)):
-            if me != neigh:
-                links.append(Link(spheres[me], spheres[neigh]))
-    return links
+from triton_ex.common.systems import (
+    InputSystem,
+    GravitationalSystem,
+    ScreenBounceSystem,
+    SimulationSystem,
+    RenderSystem,
+    GameLoopSystem,
+)
+from triton_ex.common.components import RigidBody, Drawable, Movable, Link
 
 
 def main():
-    spheres = []
-    sphere_col = []
-    downward = Vector2d(0.0, 0.0)  # 9.81)
+    regs = Registry()
 
-    for i in range(15):
-        pos = Vector2d(random.random() * 400.0, random.random() * 400.0)
-        vel = Vector2d(0.0, 0.0)
-        sphere = Sphere(mass=1.0, radius=4.0, pos=pos, vel=vel, damping=0.0, elasticity=0.97)
-
-        spheres.append(sphere)
-        sphere_col.append(
-            (int(sphere.x) % 255, int(sphere.y) % 255, int(sphere.radius) * 255 % 255)
+    for i in range(11):
+        sphere = Sphere(
+            mass=1.0,
+            radius=5.0,
+            pos=Vector2d(400.0 + random.randint(-10, 10), 400.0 + random.randint(-10, 10)),
+            vel=Vector2d(0.0, 0),
+            damping=0.0,
+            elasticity=0.97,
         )
+        regs.add_entity(RigidBody(sphere), Drawable(), Movable())
 
-    links = update_links(spheres)
+    for e1, [r1] in regs.get_components(RigidBody):
+        for e2, [r2] in regs.get_components(RigidBody):
+            if e1 == e2:
+                continue
+            regs.add_entity(
+                Link(SpringDamperLink(r1.sphere, r2.sphere, damping=0.2, spring=0.9, length=300.0)),
+                Drawable(),
+            )
 
-    t = 0
-    dt = 0.03
+    regs.add_system(InputSystem())
+    regs.add_system(ScreenBounceSystem())
+    regs.add_system(SimulationSystem())
+    regs.add_system(RenderSystem())
+    regs.add_system(GameLoopSystem())
 
-    screen = pygame.display.set_mode((800, 800))
-    clock = pygame.time.Clock()
-
-    while not pygame.QUIT in [e.type for e in pygame.event.get()]:
-
-        for sphere in spheres:
-            if sphere.y > 650:
-                counter_force = Vector2d(0.0, 100 * (650 - sphere.y))
-                sphere.apply_force_to_com(counter_force)
-            if sphere.x < 10:
-                counter_force = Vector2d(100.0 * (10.0 - sphere.x), 0.0)
-                sphere.apply_force_to_com(counter_force)
-            if sphere.x > 790:
-                counter_force = Vector2d(100.0 * (790 - sphere.x), 0.0)
-                sphere.apply_force_to_com(counter_force)
-
-        for sphere in spheres:
-            sphere.apply_force_to_com(sphere.mass * downward)
-
-        update_links(spheres)
-        for link in links:
-            link.resolve()
-
-        screen.fill((255, 245, 225))
-
-        pygame.draw.aaline(screen, (0, 0, 0), (0, 650), (800, 650))
-
-        # links = update_links(spheres)
-        for link in links:
-            link.draw(screen)
-
-        for n, sphere in enumerate(spheres):
-            pygame.draw.circle(screen, sphere_col[n], sphere.pos.tuple(), int(sphere.radius), 0)
-
-        for sphere in spheres:
-            sphere.update(t, dt)
-
-        pygame.display.flip()
-        t += dt
+    while True:
+        regs.process()
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ from triton_ex.common.components import (
 
 
 class SimulationSystem(System):
-    def initialize(self, t=0, dt=0.1):
+    def initialize(self, t=0, dt=0.05):
         self.t = t
         self.dt = dt
         self.on(TickEvent, self.update)
@@ -56,6 +56,17 @@ class RenderSystem(System):
 
     def tick(self, _):
         self.screen.fill((255, 245, 225))
+        clamp = lambda x, l, u: l if x < l else u if x > u else x
+
+        for e, (l, d) in self.registry.get_components(Link, Drawable):
+            x = l.link._rb1.pos - l.link._rb2.pos
+            d = x.length() / l.link._length
+            red = clamp(abs(1.0 - d) * 200, 0, 250)
+            green = clamp(abs(d) * 200, 0, 250)
+            blue = 100
+            color = (red, green, blue)
+            pygame.draw.aaline(self.screen, color, l.link._rb1.pos.tuple(), l.link._rb2.pos.tuple())
+
         for e, (r, d) in self.registry.get_components(RigidBody, Drawable):
             self.draw(
                 self.screen,
@@ -67,17 +78,6 @@ class RenderSystem(System):
 
         for e, (c, d) in self.registry.get_components(Centroid, Drawable):
             self.draw(self.screen, int(c.center[0]), int(c.center[1]), int(10), (20, 20, 20))
-
-        clamp = lambda x, l, u: l if x < l else u if x > u else x
-
-        for e, (l, d) in self.registry.get_components(Link, Drawable):
-            x = l.link._rb1.pos - l.link._rb2.pos
-            d = x.length() / l.link._length
-            red = clamp(abs(1.0 - d) * 200, 0, 250)
-            green = clamp(abs(d) * 200, 0, 250)
-            blue = 100
-            color = (red, green, blue)
-            pygame.draw.aaline(self.screen, color, l.link._rb1.pos.tuple(), l.link._rb2.pos.tuple())
 
         self.clock.tick(60)
         pygame.display.flip()

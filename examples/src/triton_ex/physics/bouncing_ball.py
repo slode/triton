@@ -39,7 +39,7 @@ from triton_ex.common.components import RigidBody, Drawable, Movable, Link
 def main():
     regs = Registry()
 
-    for i in range(15):
+    for i in range(25):
         sphere = Sphere(
             mass=1.0,
             radius=4.0,
